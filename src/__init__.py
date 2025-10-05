@@ -1,12 +1,5 @@
-"""
-Morph1x - Video Tracking for Living Beings
-
-A real-time video tracking system that detects and tracks living beings
-(humans, animals) using YOLOv8 object detection.
-"""
-
 __version__ = "1.0.0"
-__author__ = "Morph1x Team"
+__author__ = "smit"
 
 from .main import VideoTracker, main
 from .detection import LivingBeingDetector, create_detector

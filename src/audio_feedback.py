@@ -1,7 +1,3 @@
-"""
-Audio feedback system for detection alerts.
-"""
-
 import os
 import sys
 import threading
@@ -14,7 +10,6 @@ from .config import ENABLE_AUDIO_FEEDBACK, AUDIO_ALERT_FILE, PROJECT_ROOT
 
 logger = logging.getLogger(__name__)
 
-# Try to import audio libraries
 try:
     import pygame
     PYGAME_AVAILABLE = True
@@ -37,17 +32,8 @@ except ImportError:
 
 
 class AudioFeedback:
-    """
-    Audio feedback system for detection alerts.
-    """
-    
+
     def __init__(self, enabled: bool = None):
-        """
-        Initialize audio feedback system.
-        
-        Args:
-            enabled: Whether audio feedback is enabled
-        """
         self.enabled = enabled if enabled is not None else ENABLE_AUDIO_FEEDBACK
         self.audio_system = None
         self.alert_sound = None
@@ -82,7 +68,6 @@ class AudioFeedback:
         """Create a simple alert sound."""
         if self.audio_system == "pygame":
             try:
-                # Create a simple beep sound
                 duration = 0.5  # seconds
                 sample_rate = 22050
                 frequency = 800  # Hz
@@ -103,41 +88,23 @@ class AudioFeedback:
                 self.alert_sound = None
     
     def play_detection_alert(self, detections: List[Dict] = None):
-        """
-        Play an alert sound for new detections.
-        
-        Args:
-            detections: List of current detections
-        """
         if not self.enabled or self.audio_system is None:
             return
         
         current_time = time.time()
         
-        # Check cooldown
         if current_time - self.last_alert_time < self.alert_cooldown:
             return
         
-        # Check if there are new detections
         if detections and self._has_new_detections(detections):
             self._play_alert()
             self.last_alert_time = current_time
             self.detection_history = detections.copy()
     
     def _has_new_detections(self, current_detections: List[Dict]) -> bool:
-        """
-        Check if there are new detections compared to history.
-        
-        Args:
-            current_detections: Current frame detections
-            
-        Returns:
-            True if there are new detections
-        """
         if not self.detection_history:
             return len(current_detections) > 0
         
-        # Simple check: if number of detections increased
         return len(current_detections) > len(self.detection_history)
     
     def _play_alert(self):
@@ -151,12 +118,6 @@ class AudioFeedback:
             logger.error(f"Failed to play alert: {e}")
     
     def play_custom_alert(self, sound_file: str):
-        """
-        Play a custom alert sound from file.
-        
-        Args:
-            sound_file: Path to sound file
-        """
         if not self.enabled or self.audio_system is None:
             return
         
@@ -171,45 +132,26 @@ class AudioFeedback:
             logger.error(f"Failed to play custom alert: {e}")
     
     def set_alert_cooldown(self, seconds: float):
-        """
-        Set the minimum time between alerts.
-        
-        Args:
-            seconds: Minimum seconds between alerts
-        """
+
         self.alert_cooldown = max(0.1, seconds)
     
     def enable(self):
-        """Enable audio feedback."""
         self.enabled = True
         if self.audio_system is None:
             self._initialize_audio()
     
     def disable(self):
-        """Disable audio feedback."""
         self.enabled = False
     
     def cleanup(self):
-        """Clean up audio resources."""
         if self.audio_system == "pygame":
             try:
                 pygame.mixer.quit()
             except:
                 pass
 
-
-class DetectionAnnouncer:
-    """
-    Text-to-speech announcer for detection types.
-    """
-    
+class DetectionAnnouncer:  
     def __init__(self, enabled: bool = False):
-        """
-        Initialize the announcer.
-        
-        Args:
-            enabled: Whether TTS is enabled
-        """
         self.enabled = enabled
         self.tts_available = False
         self.last_announcement = {}
@@ -219,16 +161,13 @@ class DetectionAnnouncer:
             self._initialize_tts()
     
     def _initialize_tts(self):
-        """Initialize text-to-speech system."""
         try:
-            # Try pyttsx3 first
             import pyttsx3
             self.tts_engine = pyttsx3.init()
             self.tts_available = True
             logger.info("TTS system initialized with pyttsx3")
         except ImportError:
             try:
-                # Try Windows SAPI
                 import win32com.client
                 self.tts_engine = win32com.client.Dispatch("SAPI.SpVoice")
                 self.tts_available = True
@@ -238,24 +177,16 @@ class DetectionAnnouncer:
                 self.tts_available = False
     
     def announce_detections(self, detections: List[Dict]):
-        """
-        Announce detection types using TTS.
-        
-        Args:
-            detections: List of detections to announce
-        """
         if not self.enabled or not self.tts_available:
             return
         
         current_time = time.time()
         
-        # Create summary of detections
         detection_summary = {}
         for detection in detections:
             class_name = detection.get('class_name', 'unknown')
             detection_summary[class_name] = detection_summary.get(class_name, 0) + 1
         
-        # Check if we should announce
         for class_name, count in detection_summary.items():
             last_time = self.last_announcement.get(class_name, 0)
             if current_time - last_time > self.announcement_cooldown:
@@ -263,13 +194,6 @@ class DetectionAnnouncer:
                 self.last_announcement[class_name] = current_time
     
     def _announce_detection(self, class_name: str, count: int):
-        """
-        Announce a specific detection.
-        
-        Args:
-            class_name: Type of detection
-            count: Number of detections
-        """
         try:
             if count == 1:
                 message = f"{class_name} detected"
@@ -289,38 +213,18 @@ class DetectionAnnouncer:
 
 
 def create_audio_feedback(enabled: bool = None) -> AudioFeedback:
-    """
-    Factory function to create an AudioFeedback instance.
-    
-    Args:
-        enabled: Whether audio feedback is enabled
-        
-    Returns:
-        AudioFeedback instance
-    """
     return AudioFeedback(enabled)
 
 
 def create_detection_announcer(enabled: bool = False) -> DetectionAnnouncer:
-    """
-    Factory function to create a DetectionAnnouncer instance.
-    
-    Args:
-        enabled: Whether TTS is enabled
-        
-    Returns:
-        DetectionAnnouncer instance
-    """
     return DetectionAnnouncer(enabled)
 
 
 if __name__ == "__main__":
-    # Test audio feedback
     audio = create_audio_feedback()
     print(f"Audio feedback enabled: {audio.enabled}")
     print(f"Audio system: {audio.audio_system}")
     
-    # Test with dummy detections
     test_detections = [
         {'class_name': 'person', 'confidence': 0.9},
         {'class_name': 'dog', 'confidence': 0.8}
