@@ -86,7 +86,6 @@ if __name__ == "__main__":
         exit_code = main()
         sys.exit(exit_code)
     except KeyboardInterrupt:
-        print("\n👋 Goodbye!")
         sys.exit(0)
     except Exception as e:
         print(f"\nError: {e}")
