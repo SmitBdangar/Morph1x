@@ -253,16 +253,12 @@ All functions include proper error handling and logging. Common exceptions:
 import cv2
 from src.detection import create_detector
 
-# Initialize detector
 detector = create_detector()
 
-# Load image
 image = cv2.imread("test_image.jpg")
 
-# Detect living beings
 detections = detector.detect_living_beings(image)
 
-# Print results
 for det in detections:
     print(f"Found {det['class_name']} with confidence {det['confidence']:.2f}")
 ```
@@ -272,14 +268,12 @@ for det in detections:
 ```python
 from src.main import VideoTracker
 
-# Process video file
 tracker = VideoTracker(
     video_source="input_video.mp4",
     output_path="output_video.mp4",
     enable_audio=True
 )
 
-# Run tracking
 success = tracker.run()
 ```
 
@@ -288,7 +282,6 @@ success = tracker.run()
 ```python
 from src.config import CONFIDENCE_THRESHOLD, BOX_COLOR
 
-# Modify settings
-CONFIDENCE_THRESHOLD = 0.7  # Higher confidence threshold
-BOX_COLOR = (0, 0, 255)    # Red boxes instead of green
+CONFIDENCE_THRESHOLD = 0.7 
+BOX_COLOR = (0, 0, 255)
 ```

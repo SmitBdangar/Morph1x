@@ -139,10 +139,10 @@
 ### Expected Output
 
 You should see:
-- ✅ Model loading successfully
-- ✅ Detection system initialized
-- ✅ Video window opening (if webcam is available)
-- ✅ Green boxes around detected objects
+- Model loading successfully
+- Detection system initialized
+- Video window opening (if webcam is available)
+- Green boxes around detected objects
 
 ## Troubleshooting
 
@@ -153,7 +153,6 @@ You should see:
 
 **Solution**:
 ```bash
-# Manually download the model
 python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"
 ```
 
@@ -190,11 +189,11 @@ pip install -r requirements.txt
 **Solutions**:
 - Reduce frame size in `src/config.py`:
   ```python
-  MAX_FRAME_SIZE = (640, 480)  # Smaller frames
+  MAX_FRAME_SIZE = (640, 480)
   ```
 - Skip frames for processing:
   ```python
-  PROCESS_EVERY_N_FRAMES = 2  # Process every 2nd frame
+  PROCESS_EVERY_N_FRAMES = 2
   ```
 - Use GPU acceleration (see GPU Setup section)
 
@@ -225,7 +224,7 @@ pip install -r requirements.txt
    git clone <repository-url>
    cd Morph1x
    python -m venv venv
-   source venv/bin/activate  # or venv\Scripts\activate on Windows
+   source venv/bin/activate
    pip install -r requirements.txt
    ```
 
@@ -268,9 +267,8 @@ pip uninstall ultralytics opencv-python numpy pygame pyttsx3 pywin32
 
 ### Remove Project
 ```bash
-# Delete project folder
-rm -rf Morph1x  # Linux/macOS
-rmdir /s Morph1x  # Windows
+rm -rf Morph1x 
+rmdir /s Morph1x
 ```
 
 ## Getting Help
@@ -300,5 +298,3 @@ After successful installation:
 3. **Explore the notebook**: Open `notebooks/object_detection_demo.ipynb`
 4. **Customize settings**: Edit `src/config.py`
 5. **Run tests**: `python -m pytest tests/ -v`
-
-Welcome to Morph1x! 🎯
