@@ -34,29 +34,18 @@ class VideoTracker:
     def __init__(self, video_source: Union[int, str] = None, 
                  model_path: str = None, enable_audio: bool = True,
                  enable_tts: bool = False, output_path: str = None):
-        """
-        Initialize the video tracker.
         
-        Args:
-            video_source: Video source (camera index or file path)
-            model_path: Path to YOLOv8 model
-            enable_audio: Enable audio feedback
-            enable_tts: Enable text-to-speech announcements
-            output_path: Path to save output video
-        """
         self.video_source = video_source or DEFAULT_VIDEO_SOURCE
         self.output_path = output_path
         self.cap = None
         self.out_writer = None
         
-        # Initialize components
         self.detector = create_detector(model_path)
         self.tracker = DetectionTracker()
         self.fps_meter = FPSMeter()
         self.audio_feedback = create_audio_feedback(enable_audio)
         self.announcer = create_detection_announcer(enable_tts)
         
-        # Processing state
         self.frame_count = 0
         self.running = False
         self.paused = False
@@ -64,12 +53,6 @@ class VideoTracker:
         logger.info("Video tracker initialized")
     
     def initialize_video_source(self) -> bool:
-        """
-        Initialize the video source.
-        
-        Returns:
-            True if successful, False otherwise
-        """
         try:
             self.cap = cv2.VideoCapture(self.video_source)
             
@@ -77,14 +60,12 @@ class VideoTracker:
                 logger.error(f"Failed to open video source: {self.video_source}")
                 return False
             
-            # Get video properties
             width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
             height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
             fps = int(self.cap.get(cv2.CAP_PROP_FPS)) or OUTPUT_VIDEO_FPS
             
             logger.info(f"Video source opened: {width}x{height} @ {fps}fps")
             
-            # Initialize output writer if specified
             if self.output_path:
                 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
                 self.out_writer = cv2.VideoWriter(
@@ -111,34 +92,26 @@ class VideoTracker:
         if not validate_frame(frame):
             return frame, [], {}
         
-        # Resize frame for better performance
         frame = resize_frame(frame, MAX_FRAME_SIZE)
         
         detections = []
         detection_summary = {}
         
-        # Process every N frames for performance
         if self.frame_count % PROCESS_EVERY_N_FRAMES == 0:
-            # Detect living beings
             detections = self.detector.detect_living_beings(frame)
             
-            # Update tracker
             detections = self.tracker.update(detections)
             
-            # Get detection summary
             detection_summary = self.detector.get_detection_summary(detections)
             
-            # Log detections if enabled
             if LOG_DETECTIONS and detections:
                 logger.info(f"Frame {self.frame_count}: {len(detections)} detections")
                 for det in detections:
                     logger.info(f"  - {det['class_name']}: {det['confidence']:.2f}")
         
-        # Draw detections on frame
         if detections:
             frame = draw_detections(frame, detections)
         
-        # Draw information panel
         frame = draw_info_panel(
             frame,
             fps=self.fps_meter.get_fps(),
@@ -149,7 +122,6 @@ class VideoTracker:
         return frame, detections, detection_summary
     
     def run(self):
-        """Run the main video tracking loop."""
         if not self.initialize_video_source():
             return False
         
@@ -164,38 +136,32 @@ class VideoTracker:
                     logger.warning("Failed to read frame from video source")
                     break
                 
-                # Handle pause
+               
                 if self.paused:
                     cv2.waitKey(30)
                     continue
                 
-                # Process frame
                 processed_frame, detections, detection_summary = self.process_frame(frame)
                 
-                # Audio feedback
                 if detections:
                     self.audio_feedback.play_detection_alert(detections)
                     self.announcer.announce_detections(detections)
                 
-                # Save frame to output video
                 if self.out_writer:
                     self.out_writer.write(processed_frame)
                 
-                # Display frame
                 cv2.imshow('Morph1x - Living Being Tracker', processed_frame)
                 
-                # Update FPS
                 self.fps_meter.update()
                 self.frame_count += 1
                 
-                # Handle keyboard input
                 key = cv2.waitKey(1) & 0xFF
-                if key == ord('q') or key == 27:  # 'q' or ESC
+                if key == ord('q') or key == 27: 
                     break
-                elif key == ord('p'):  # 'p' for pause
+                elif key == ord('p'):  
                     self.paused = not self.paused
                     logger.info(f"Video {'paused' if self.paused else 'resumed'}")
-                elif key == ord('r'):  # 'r' for reset
+                elif key == ord('r'): 
                     self.tracker.clear_history()
                     self.fps_meter.reset()
                     logger.info("Tracker reset")
@@ -210,7 +176,6 @@ class VideoTracker:
         return True
     
     def cleanup(self):
-        """Clean up resources."""
         self.running = False
         
         if self.cap:
@@ -228,19 +193,10 @@ class VideoTracker:
 
 
 def main():
-    """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="Morph1x - Video Tracking for Living Beings",
+        description="Morph1x",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  python -m src.main                    # Use default webcam
-  python -m src.main --source 0         # Use webcam index 0
-  python -m src.main --source video.mp4 # Process video file
-  python -m src.main --output result.mp4 # Save output video
-  python -m src.main --no-audio         # Disable audio feedback
-  python -m src.main --tts              # Enable text-to-speech
-        """
+        epilog="Press 'q' or 'ESC' to quit, 'p' to pause/resume, 'r' to reset tracker"
     )
     
     parser.add_argument(
@@ -282,16 +238,13 @@ Examples:
     
     args = parser.parse_args()
     
-    # Set logging level
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
     
-    # Convert source to int if it's a number
     video_source = args.source
     if video_source.isdigit():
         video_source = int(video_source)
     
-    # Create and run tracker
     try:
         tracker = VideoTracker(
             video_source=video_source,
