@@ -1,0 +1,77 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Morph1x - Demo (Webcam)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/demo.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Morph1x - Video File",
+            "type": "python",
+            "request": "launch",
+            "module": "src.main",
+            "args": [
+                "--source", "C:\\Users\\Admin\\OneDrive\\Documents\\GitHub\\Morph1x\\123.mp4",
+                "--output", "processed_video.mp4",
+                "--verbose"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Morph1x - Webcam",
+            "type": "python",
+            "request": "launch",
+            "module": "src.main",
+            "args": [
+                "--source", "0",
+                "--verbose"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Morph1x - Custom Video",
+            "type": "python",
+            "request": "launch",
+            "module": "src.main",
+            "args": [
+                "--source", "${input:videoPath}",
+                "--output", "${input:outputPath}",
+                "--verbose"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "videoPath",
+            "description": "Enter the path to your video file",
+            "default": "C:\\Users\\Admin\\OneDrive\\Documents\\GitHub\\Morph1x\\123.mp4",
+            "type": "promptString"
+        },
+        {
+            "id": "outputPath",
+            "description": "Enter the output video path",
+            "default": "processed_output.mp4",
+            "type": "promptString"
+        }
+    ]
+}

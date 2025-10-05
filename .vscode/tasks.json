@@ -1,0 +1,80 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Install Dependencies",
+            "type": "shell",
+            "command": "pip",
+            "args": ["install", "-r", "requirements.txt"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Demo",
+            "type": "shell",
+            "command": "python",
+            "args": ["demo.py"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Tests",
+            "type": "shell",
+            "command": "python",
+            "args": ["-m", "pytest", "tests/", "-v"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Process Video",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "-m", "src.main",
+                "--source", "${input:videoFile}",
+                "--output", "${input:outputFile}",
+                "--verbose"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "videoFile",
+            "description": "Enter video file path",
+            "default": "C:\\Users\\Admin\\OneDrive\\Documents\\GitHub\\Morph1x\\123.mp4",
+            "type": "promptString"
+        },
+        {
+            "id": "outputFile",
+            "description": "Enter output file path",
+            "default": "processed_output.mp4",
+            "type": "promptString"
+        }
+    ]
+}
