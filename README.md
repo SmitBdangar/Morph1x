@@ -96,20 +96,6 @@ python -m src.main --verbose
 - `p` - Pause/Resume
 - `r` - Reset tracker
 
-## Detectable Classes
-
-The system can detect the following living beings:
-- Person
-- Cat
-- Dog
-- Horse
-- Sheep
-- Cow
-- Elephant
-- Bear
-- Zebra
-- Giraffe
-
 ## Configuration Presets
 
 | Preset | Confidence | IOU | Max Detections | Frame Size | Use Case |
