@@ -1,14 +1,9 @@
-"""
-Main application for video tracking with living being detection.
-"""
-
 import cv2
 import argparse
 import sys
 import logging
-import time
 from pathlib import Path
-from typing import Optional, Union
+from typing import Union
 
 from .config import (
     DEFAULT_VIDEO_SOURCE, MAX_FRAME_SIZE, PROCESS_EVERY_N_FRAMES,
@@ -18,7 +13,6 @@ from .detection import create_detector, DetectionTracker
 from .utils import FPSMeter, draw_detections, draw_info_panel, resize_frame, validate_frame
 from .audio_feedback import create_audio_feedback, create_detection_announcer
 
-# Set up logging
 logging.basicConfig(
     level=getattr(logging, LOG_LEVEL.upper()),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -27,9 +21,6 @@ logger = logging.getLogger(__name__)
 
 
 class VideoTracker:
-    """
-    Main video tracking application.
-    """
     
     def __init__(self, video_source: Union[int, str] = None, 
                  model_path: str = None, enable_audio: bool = True,
@@ -80,15 +71,6 @@ class VideoTracker:
             return False
     
     def process_frame(self, frame) -> tuple:
-        """
-        Process a single frame for detections.
-        
-        Args:
-            frame: Input video frame
-            
-        Returns:
-            Tuple of (processed_frame, detections, detection_summary)
-        """
         if not validate_frame(frame):
             return frame, [], {}
         
@@ -192,34 +174,63 @@ class VideoTracker:
         logger.info("Cleanup completed")
 
 
+def apply_config_preset(preset: str):
+    """Apply configuration preset by modifying config module variables."""
+    import src.config as config
+    
+    if preset == 'balanced':
+        # Default balanced settings (already in config.py)
+        print("Using balanced configuration preset")
+        
+    elif preset == 'high-accuracy':
+        # Lower thresholds for more detections
+        config.CONFIDENCE_THRESHOLD = 0.3
+        config.IOU_THRESHOLD = 0.3
+        config.MAX_DETECTIONS = 200
+        config.PROCESS_EVERY_N_FRAMES = 1
+        config.MAX_FRAME_SIZE = (1920, 1080)
+        config.LOG_LEVEL = "INFO"
+        print("Using high-accuracy configuration preset")
+        
+    elif preset == 'performance':
+        # Higher thresholds for faster processing
+        config.CONFIDENCE_THRESHOLD = 0.7
+        config.IOU_THRESHOLD = 0.6
+        config.MAX_DETECTIONS = 50
+        config.PROCESS_EVERY_N_FRAMES = 3
+        config.MAX_FRAME_SIZE = (640, 480)
+        config.LOG_LEVEL = "WARNING"
+        print("Using performance configuration preset")
+        
+    elif preset == 'development':
+        # Debug settings
+        config.LOG_LEVEL = "DEBUG"
+        config.LOG_DETECTIONS = True
+        config.SHOW_FPS = True
+        config.ENABLE_AUDIO_FEEDBACK = False
+        print("Using development configuration preset")
+
+
 def main():
     parser = argparse.ArgumentParser(
-        description="Morph1x - Real-time living being detection and tracking",
+        description="Morph1x - Real-time detection and tracking",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   # Use webcam (default)
   python -m src.main
   
-  # Use specific camera
-  python -m src.main --source 1
-  
   # Process video file
-  python -m src.main --source video.mp4
+  python -m src.main --source "video.mp4"
   
-  # Process video file with output
-  python -m src.main --source input.mp4 --output result.mp4
+  # High accuracy mode with TTS
+  python -m src.main --preset high-accuracy --tts
   
-  # Disable audio feedback
-  python -m src.main --no-audio
+  # Save processed video
+  python -m src.main --source "input.mp4" --output "output.mp4"
   
-  # Enable text-to-speech
-  python -m src.main --tts
-
-Controls:
-  Press 'q' or 'ESC' to quit
-  Press 'p' to pause/resume
-  Press 'r' to reset tracker
+  # Performance mode for low-end devices
+  python -m src.main --preset performance
         """
     )
     
@@ -227,7 +238,7 @@ Controls:
         '--source', '-s',
         type=str,
         default=str(DEFAULT_VIDEO_SOURCE),
-        help='Video source: camera index (0, 1, 2...) or video file path (default: 0 for webcam)'
+        help='Video source: camera index (0,1,2...) or video file path (default: 0 for webcam)'
     )
     
     parser.add_argument(
@@ -240,6 +251,19 @@ Controls:
         '--output', '-o',
         type=str,
         help='Output video file path (optional, for saving processed video)'
+    )
+    
+    parser.add_argument(
+        '--preset', '-p',
+        choices=['balanced', 'high-accuracy', 'performance', 'development'],
+        default='balanced',
+        help='Configuration preset (default: balanced)'
+    )
+    
+    parser.add_argument(
+        '--confidence',
+        type=float,
+        help='Detection confidence threshold (0.0-1.0, overrides preset)'
     )
     
     parser.add_argument(
@@ -260,10 +284,38 @@ Controls:
         help='Enable verbose logging'
     )
     
+    parser.add_argument(
+        '--list-classes',
+        action='store_true',
+        help='List all detectable classes and exit'
+    )
+    
     args = parser.parse_args()
+    
+    # Handle list-classes option
+    if args.list_classes:
+        from .config import PRIMARY_LIVING_BEINGS
+        print("Morph1x - Detectable Living Beings:")
+        print("=" * 40)
+        for class_id, class_name in PRIMARY_LIVING_BEINGS.items():
+            print(f"  {class_id:2d}. {class_name}")
+        print(f"\nTotal classes: {len(PRIMARY_LIVING_BEINGS)}")
+        return 0
     
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
+    
+    # Apply configuration presets
+    apply_config_preset(args.preset)
+    
+    # Override confidence if specified
+    if args.confidence is not None:
+        if not 0.0 <= args.confidence <= 1.0:
+            print(f"Error: Confidence must be between 0.0 and 1.0, got {args.confidence}")
+            sys.exit(1)
+        import src.config as config
+        config.CONFIDENCE_THRESHOLD = args.confidence
+        print(f"Confidence threshold set to: {args.confidence}")
     
     # Parse video source
     video_source = args.source
