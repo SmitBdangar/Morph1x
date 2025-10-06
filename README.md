@@ -1,16 +1,6 @@
-# Morph1x - Living Being Tracker
+# Morph1x
 
-A real-time object detection and tracking system focused on detecting living beings (humans and animals) using YOLOv8.
-
-## Features
-
-- **Real-time Detection**: Detect humans and animals in video streams or files
-- **Multiple Input Sources**: Webcam, video files, or multiple cameras
-- **Audio Feedback**: Sound alerts when detections are found
-- **Text-to-Speech**: Optional voice announcements
-- **Video Recording**: Save processed videos with detections
-- **Configuration Presets**: Optimized settings for different use cases
-- **Performance Monitoring**: FPS counter and detection statistics
+A real-time object detection and tracking system focused on detecting living beings using YOLOv8.
 
 ## Installation
 
@@ -136,6 +126,5 @@ python -m pytest tests/ -v
 - Ultralytics YOLOv8
 - NumPy
 - Pygame (for audio)
-- pyttsx3 (for text-to-speech)
 
 See `requirements.txt` for complete dependency list.
