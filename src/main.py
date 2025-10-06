@@ -194,28 +194,52 @@ class VideoTracker:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Morph1x",
+        description="Morph1x - Real-time living being detection and tracking",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="Press 'q' or 'ESC' to quit, 'p' to pause/resume, 'r' to reset tracker"
+        epilog="""
+Examples:
+  # Use webcam (default)
+  python -m src.main
+  
+  # Use specific camera
+  python -m src.main --source 1
+  
+  # Process video file
+  python -m src.main --source video.mp4
+  
+  # Process video file with output
+  python -m src.main --source input.mp4 --output result.mp4
+  
+  # Disable audio feedback
+  python -m src.main --no-audio
+  
+  # Enable text-to-speech
+  python -m src.main --tts
+
+Controls:
+  Press 'q' or 'ESC' to quit
+  Press 'p' to pause/resume
+  Press 'r' to reset tracker
+        """
     )
     
     parser.add_argument(
         '--source', '-s',
         type=str,
         default=str(DEFAULT_VIDEO_SOURCE),
-        help='Video source (camera index or file path)'
+        help='Video source: camera index (0, 1, 2...) or video file path (default: 0 for webcam)'
     )
     
     parser.add_argument(
         '--model', '-m',
         type=str,
-        help='Path to YOLOv8 model file'
+        help='Path to YOLOv8 model file (default: uses yolov8n.pt from models/)'
     )
     
     parser.add_argument(
         '--output', '-o',
         type=str,
-        help='Output video file path'
+        help='Output video file path (optional, for saving processed video)'
     )
     
     parser.add_argument(
@@ -241,14 +265,35 @@ def main():
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
     
+    # Parse video source
     video_source = args.source
     if video_source.isdigit():
         video_source = int(video_source)
+        print(f"Using camera {video_source}")
+    else:
+        # Check if file exists
+        if not Path(video_source).exists():
+            print(f"Error: Video file '{video_source}' not found!")
+            sys.exit(1)
+        print(f"Processing video file: {video_source}")
+    
+    # Set default model path if not provided
+    model_path = args.model
+    if not model_path:
+        default_model = Path(__file__).parent.parent / "models" / "yolov8n.pt"
+        if default_model.exists():
+            model_path = str(default_model)
+            print(f"Using default model: {model_path}")
+        else:
+            print("Warning: No model file found, using YOLOv8 default")
     
     try:
+        print("\nStarting Morph1x...")
+        print("Controls: 'q' to quit, 'p' to pause, 'r' to reset")
+        
         tracker = VideoTracker(
             video_source=video_source,
-            model_path=args.model,
+            model_path=model_path,
             enable_audio=not args.no_audio,
             enable_tts=args.tts,
             output_path=args.output
@@ -258,12 +303,18 @@ def main():
         
         if success:
             logger.info("Video tracking completed successfully")
+            if args.output:
+                print(f"Output saved to: {args.output}")
         else:
             logger.error("Video tracking failed")
             sys.exit(1)
             
+    except KeyboardInterrupt:
+        print("\nInterrupted by user")
+        sys.exit(0)
     except Exception as e:
         logger.error(f"Fatal error: {e}")
+        print(f"Error: {e}")
         sys.exit(1)
 
 
