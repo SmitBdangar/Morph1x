@@ -88,16 +88,74 @@ class DetectionTracker:
     def __init__(self, max_history: int = 5):
         self.max_history = max_history
         self.detection_history = []
-    
-    def update(self, detections: List[Dict]) -> List[Dict]:
+        self.previous_objects: List[Dict] = []  # [{'id': int, 'center': (x,y), 'class_id': int}]
+        self.next_id = 1
+
+    def _center_of(self, bbox: np.ndarray) -> Tuple[int, int]:
+        x1, y1, x2, y2 = bbox
+        cx = int((x1 + x2) / 2)
+        cy = int((y1 + y2) / 2)
+        return cx, cy
+
+    def _assign_ids_and_speeds(self, detections: List[Dict], fps: float) -> None:
+        # Simple nearest-center matching per class; computes speed in px/s.
+        current_objects = []
+        used_prev = set()
+        speed_scale = fps if fps and fps > 0 else 0.0
+
+        for det in detections:
+            center = self._center_of(det['bbox'])
+            class_id = det.get('class_id')
+
+            # Find nearest previous object with same class
+            best_idx = -1
+            best_dist = float('inf')
+            for idx, prev in enumerate(self.previous_objects):
+                if idx in used_prev:
+                    continue
+                if prev.get('class_id') != class_id:
+                    continue
+                px, py = prev['center']
+                dx = center[0] - px
+                dy = center[1] - py
+                dist = dx * dx + dy * dy
+                if dist < best_dist:
+                    best_dist = dist
+                    best_idx = idx
+
+            if best_idx >= 0:
+                prev = self.previous_objects[best_idx]
+                used_prev.add(best_idx)
+                det['track_id'] = prev['id']
+                if speed_scale > 0:
+                    dx = center[0] - prev['center'][0]
+                    dy = center[1] - prev['center'][1]
+                    # pixels per frame -> pixels per second
+                    speed_px_s = (dx * dx + dy * dy) ** 0.5 * speed_scale
+                    det['speed_px_s'] = float(speed_px_s)
+                else:
+                    det['speed_px_s'] = 0.0
+                current_objects.append({'id': prev['id'], 'center': center, 'class_id': class_id})
+            else:
+                # New object
+                det['track_id'] = self.next_id
+                det['speed_px_s'] = 0.0
+                current_objects.append({'id': self.next_id, 'center': center, 'class_id': class_id})
+                self.next_id += 1
+
+        # Update previous objects for next frame
+        self.previous_objects = current_objects
+
+    def update(self, detections: List[Dict], fps: float = 0.0) -> List[Dict]:
+        self._assign_ids_and_speeds(detections, fps)
         self.detection_history.append(detections)
-        
         if len(self.detection_history) > self.max_history:
             self.detection_history.pop(0)
         return detections
-    
+
     def clear_history(self):
         self.detection_history = []
+        self.previous_objects = []
 
 
 def create_detector(model_path: str = None) -> LivingBeingDetector:

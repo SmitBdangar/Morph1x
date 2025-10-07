@@ -49,7 +49,12 @@ def draw_detection_box(frame: np.ndarray, detection: Dict,
     
     cv2.rectangle(frame, (x1, y1), (x2, y2), color, BOX_THICKNESS)
     
-    label = f"{class_name}: {confidence:.2f}"
+    speed_px_s = detection.get('speed_px_s')
+    # Show speed only for persons where it makes sense
+    if speed_px_s is not None and detection.get('class_name') == 'person':
+        label = f"{class_name}: {confidence:.2f} | {speed_px_s:.0f}px/s"
+    else:
+        label = f"{class_name}: {confidence:.2f}"
     
     (text_width, text_height), baseline = cv2.getTextSize(
         label, cv2.FONT_HERSHEY_SIMPLEX, FONT_SCALE, TEXT_THICKNESS

@@ -82,7 +82,8 @@ class VideoTracker:
         if self.frame_count % PROCESS_EVERY_N_FRAMES == 0:
             detections = self.detector.detect_living_beings(frame)
             
-            detections = self.tracker.update(detections)
+            current_fps = self.fps_meter.get_fps() or OUTPUT_VIDEO_FPS
+            detections = self.tracker.update(detections, fps=current_fps)
             
             detection_summary = self.detector.get_detection_summary(detections)
             
@@ -201,6 +202,16 @@ def apply_config_preset(preset: str):
         config.MAX_FRAME_SIZE = (640, 480)
         config.LOG_LEVEL = "WARNING"
         print("Using performance configuration preset")
+    
+    elif preset == 'long-range':
+        # Tuned for small/distant objects (more sensitive, higher resolution)
+        config.CONFIDENCE_THRESHOLD = 0.25
+        config.IOU_THRESHOLD = 0.35
+        config.MAX_DETECTIONS = 300
+        config.PROCESS_EVERY_N_FRAMES = 1
+        config.MAX_FRAME_SIZE = (1920, 1080)
+        config.LOG_LEVEL = "INFO"
+        print("Using long-range configuration preset")
         
     elif preset == 'development':
         # Debug settings
@@ -255,7 +266,7 @@ Examples:
     
     parser.add_argument(
         '--preset', '-p',
-        choices=['balanced', 'high-accuracy', 'performance', 'development'],
+        choices=['balanced', 'high-accuracy', 'performance', 'development', 'long-range'],
         default='balanced',
         help='Configuration preset (default: balanced)'
     )
@@ -264,6 +275,12 @@ Examples:
         '--confidence',
         type=float,
         help='Detection confidence threshold (0.0-1.0, overrides preset)'
+    )
+
+    parser.add_argument(
+        '--resolution', '-r',
+        type=str,
+        help='Processing resolution WIDTHxHEIGHT (e.g., 1280x720). Overrides preset.'
     )
     
     parser.add_argument(
@@ -316,6 +333,20 @@ Examples:
         import src.config as config
         config.CONFIDENCE_THRESHOLD = args.confidence
         print(f"Confidence threshold set to: {args.confidence}")
+
+    # Override processing resolution if specified
+    if args.resolution:
+        try:
+            width_str, height_str = args.resolution.lower().split('x')
+            width, height = int(width_str), int(height_str)
+            if width <= 0 or height <= 0:
+                raise ValueError("Resolution must be positive")
+            import src.config as config
+            config.MAX_FRAME_SIZE = (width, height)
+            print(f"Processing resolution set to: {width}x{height}")
+        except Exception as e:
+            print(f"Error: Invalid --resolution '{args.resolution}'. Use format WIDTHxHEIGHT, e.g., 1280x720")
+            sys.exit(1)
     
     # Parse video source
     video_source = args.source
