@@ -68,12 +68,10 @@ class LivingBeingDetector:
     
     def filter_living_beings(self, detections: List[Dict]) -> List[Dict]:
         living_beings = []
-        
         for detection in detections:
             class_id = detection.get('class_id')
             if class_id in PRIMARY_LIVING_BEINGS:
                 living_beings.append(detection)
-        
         return living_beings
     
     def get_detection_summary(self, detections: List[Dict]) -> Dict[str, int]:
@@ -106,20 +104,4 @@ def create_detector(model_path: str = None) -> LivingBeingDetector:
     return LivingBeingDetector(model_path)
 
 
-def test_detection():
-    try:
-        detector = create_detector()
-        logger.info("Detection system initialized successfully")
-            # Create a dummy frame for testing
-        test_frame = np.zeros((480, 640, 3), dtype=np.uint8)
-        detections = detector.detect_living_beings(test_frame)
-        logger.info(f"Test detection completed. Found {len(detections)} objects")
-        
-        return True
-    except Exception as e:
-        logger.error(f"Detection test failed: {e}")
-        return False
-
-
-if __name__ == "__main__":
-    test_detection()
+ 

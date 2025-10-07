@@ -148,43 +148,6 @@ def resize_frame(frame: np.ndarray, max_size: Tuple[int, int] = None) -> np.ndar
     
     return frame
 
-
-def create_video_writer(output_path: str, frame_size: Tuple[int, int], 
-                       fps: int = 30) -> cv2.VideoWriter:
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    return cv2.VideoWriter(output_path, fourcc, fps, frame_size)
-
-
-def get_video_source_info(source) -> Dict:
-    info = {
-        'type': 'unknown',
-        'width': 0,
-        'height': 0,
-        'fps': 0
-    }
-    
-    try:
-        if isinstance(source, int):
-            # Camera source
-            cap = cv2.VideoCapture(source)
-            info['type'] = 'camera'
-        else:
-            # File source
-            cap = cv2.VideoCapture(str(source))
-            info['type'] = 'file'
-        
-        if cap.isOpened():
-            info['width'] = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-            info['height'] = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            info['fps'] = int(cap.get(cv2.CAP_PROP_FPS))
-            cap.release()
-        
-    except Exception as e:
-        logger.error(f"Error getting video source info: {e}")
-    
-    return info
-
-
 def validate_frame(frame: np.ndarray) -> bool:
     if frame is None:
         return False
@@ -200,22 +163,3 @@ def validate_frame(frame: np.ndarray) -> bool:
     
     return True
 
-def create_test_frame(width: int = 640, height: int = 480) -> np.ndarray:
-    frame = np.zeros((height, width, 3), dtype=np.uint8)
-    
-    cv2.rectangle(frame, (50, 50), (200, 150), (0, 255, 0), 2)
-    cv2.circle(frame, (400, 100), 50, (255, 0, 0), 2)
-    cv2.putText(frame, "Test Frame", (250, 250), 
-               cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-    
-    return frame
-
-
-if __name__ == "__main__":
-    test_frame = create_test_frame()
-    print(f"Test frame created: {test_frame.shape}")
-    
-    fps_meter = FPSMeter()
-    for _ in range(10):
-        fps_meter.update()
-    print(f"FPS: {fps_meter.get_fps():.2f}")

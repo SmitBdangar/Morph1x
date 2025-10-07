@@ -220,17 +220,4 @@ def create_detection_announcer(enabled: bool = False) -> DetectionAnnouncer:
     return DetectionAnnouncer(enabled)
 
 
-if __name__ == "__main__":
-    audio = create_audio_feedback()
-    print(f"Audio feedback enabled: {audio.enabled}")
-    print(f"Audio system: {audio.audio_system}")
-    
-    test_detections = [
-        {'class_name': 'person', 'confidence': 0.9},
-        {'class_name': 'dog', 'confidence': 0.8}
-    ]
-    
-    audio.play_detection_alert(test_detections)
-    time.sleep(1)
-    
-    audio.cleanup()
+ 
