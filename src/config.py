@@ -116,3 +116,8 @@ MAX_FRAME_SIZE = (1280, 720)
 
 LOG_LEVEL = "INFO"
 LOG_DETECTIONS = True
+
+# Real-world scale calibration
+# Either set METERS_PER_PIXEL directly, or pass via CLI.
+# Default 0.0 means unknown scale; speeds shown in px/s only.
+METERS_PER_PIXEL = 0.0

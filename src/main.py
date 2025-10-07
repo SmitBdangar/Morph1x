@@ -10,7 +10,8 @@ from .config import (
     OUTPUT_VIDEO_FPS, LOG_LEVEL, LOG_DETECTIONS
 )
 from .detection import create_detector, DetectionTracker
-from .utils import FPSMeter, draw_detections, draw_info_panel, resize_frame, validate_frame
+from .utils import FPSMeter, draw_detections, resize_frame, validate_frame
+from .ui import apply_hud
 from .audio_feedback import create_audio_feedback, create_detection_announcer
 
 logging.basicConfig(
@@ -95,11 +96,12 @@ class VideoTracker:
         if detections:
             frame = draw_detections(frame, detections)
         
-        frame = draw_info_panel(
+        frame = apply_hud(
             frame,
             fps=self.fps_meter.get_fps(),
-            detection_count=len(detections),
-            detection_summary=detection_summary
+            det_count=len(detections),
+            summary=detection_summary,
+            objects=detections
         )
         
         return frame, detections, detection_summary
@@ -282,6 +284,20 @@ Examples:
         type=str,
         help='Processing resolution WIDTHxHEIGHT (e.g., 1280x720). Overrides preset.'
     )
+
+    parser.add_argument(
+        '--meters-per-pixel', '--mpp',
+        dest='meters_per_pixel',
+        type=float,
+        help='Calibration scale: meters per pixel (e.g., 0.002).'
+    )
+
+    parser.add_argument(
+        '--pixels-per-meter', '--ppm',
+        dest='pixels_per_meter',
+        type=float,
+        help='Calibration scale: pixels per meter (e.g., 50).'
+    )
     
     parser.add_argument(
         '--no-audio',
@@ -347,6 +363,25 @@ Examples:
         except Exception as e:
             print(f"Error: Invalid --resolution '{args.resolution}'. Use format WIDTHxHEIGHT, e.g., 1280x720")
             sys.exit(1)
+
+    # Calibration scale overrides
+    if args.meters_per_pixel is not None and args.pixels_per_meter is not None:
+        print("Error: Use either --meters-per-pixel or --pixels-per-meter, not both.")
+        sys.exit(1)
+    if args.meters_per_pixel is not None:
+        import src.config as config
+        if args.meters_per_pixel <= 0:
+            print("Error: --meters-per-pixel must be > 0")
+            sys.exit(1)
+        config.METERS_PER_PIXEL = float(args.meters_per_pixel)
+        print(f"Meters per pixel set to: {config.METERS_PER_PIXEL}")
+    if args.pixels_per_meter is not None:
+        import src.config as config
+        if args.pixels_per_meter <= 0:
+            print("Error: --pixels-per-meter must be > 0")
+            sys.exit(1)
+        config.METERS_PER_PIXEL = 1.0 / float(args.pixels_per_meter)
+        print(f"Meters per pixel set to: {config.METERS_PER_PIXEL} (from pixels per meter)")
     
     # Parse video source
     video_source = args.source

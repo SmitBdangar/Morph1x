@@ -6,7 +6,7 @@ import logging
 
 from .config import (
     MODEL_PATH, CONFIDENCE_THRESHOLD, IOU_THRESHOLD, MAX_DETECTIONS,
-    PRIMARY_LIVING_BEINGS, LIVING_BEING_CLASSES
+    PRIMARY_LIVING_BEINGS, LIVING_BEING_CLASSES, METERS_PER_PIXEL
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -133,13 +133,19 @@ class DetectionTracker:
                     # pixels per frame -> pixels per second
                     speed_px_s = (dx * dx + dy * dy) ** 0.5 * speed_scale
                     det['speed_px_s'] = float(speed_px_s)
+                    if METERS_PER_PIXEL and METERS_PER_PIXEL > 0:
+                        det['speed_m_s'] = float(speed_px_s * METERS_PER_PIXEL)
                 else:
                     det['speed_px_s'] = 0.0
+                    if METERS_PER_PIXEL and METERS_PER_PIXEL > 0:
+                        det['speed_m_s'] = 0.0
                 current_objects.append({'id': prev['id'], 'center': center, 'class_id': class_id})
             else:
                 # New object
                 det['track_id'] = self.next_id
                 det['speed_px_s'] = 0.0
+                if METERS_PER_PIXEL and METERS_PER_PIXEL > 0:
+                    det['speed_m_s'] = 0.0
                 current_objects.append({'id': self.next_id, 'center': center, 'class_id': class_id})
                 self.next_id += 1
 
