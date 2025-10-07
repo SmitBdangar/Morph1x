@@ -1,12 +1,11 @@
-import cv2
 import numpy as np
 from ultralytics import YOLO
-from typing import List, Tuple, Dict, Optional
+from typing import List, Tuple, Dict
 import logging
 
 from .config import (
     MODEL_PATH, CONFIDENCE_THRESHOLD, IOU_THRESHOLD, MAX_DETECTIONS,
-    PRIMARY_LIVING_BEINGS, LIVING_BEING_CLASSES, METERS_PER_PIXEL
+    PRIMARY_LIVING_BEINGS, METERS_PER_PIXEL
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -66,13 +65,7 @@ class LivingBeingDetector:
             logger.error(f"Detection failed: {e}")
             return []
     
-    def filter_living_beings(self, detections: List[Dict]) -> List[Dict]:
-        living_beings = []
-        for detection in detections:
-            class_id = detection.get('class_id')
-            if class_id in PRIMARY_LIVING_BEINGS:
-                living_beings.append(detection)
-        return living_beings
+    
     
     def get_detection_summary(self, detections: List[Dict]) -> Dict[str, int]:
         summary = {}

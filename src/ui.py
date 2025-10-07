@@ -15,45 +15,13 @@ def _draw_rounded_rect(img, rect, color, radius=8, thickness=-1):
     cv2.addWeighted(overlay, 0.95, img, 0.05, 0, img)
 
 
-def draw_header(frame: np.ndarray, title: str = "Morph1x Surveillance", right_text: str = "LIVE") -> np.ndarray:
-    h, w = frame.shape[:2]
-    bar_h = 36
-    _draw_rounded_rect(frame, (10, 10, w - 20, bar_h), (20, 20, 20), radius=10, thickness=-1)
-    cv2.putText(frame, title, (24, 35), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1)
-    # Live pill
-    pill_w = 70
-    cv2.rectangle(frame, (w - 24 - pill_w, 16), (w - 24, 16 + 24), (0, 0, 255), -1)
-    cv2.putText(frame, right_text, (w - 24 - pill_w + 12, 34), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
-    return frame
+ 
 
 
-def draw_footer(frame: np.ndarray, left: str = "", center: str = "", right: str = "") -> np.ndarray:
-    h, w = frame.shape[:2]
-    bar_h = 32
-    _draw_rounded_rect(frame, (10, h - bar_h - 10, w - 20, bar_h), (20, 20, 20), radius=10, thickness=-1)
-    if left:
-        cv2.putText(frame, left, (24, h - 14), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (180, 180, 180), 1)
-    if center:
-        (tw, th), _ = cv2.getTextSize(center, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
-        cx = (w - tw) // 2
-        cv2.putText(frame, center, (cx, h - 14), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (180, 180, 180), 1)
-    if right:
-        (tw, th), _ = cv2.getTextSize(right, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
-        cv2.putText(frame, right, (w - 24 - tw, h - 14), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (180, 180, 180), 1)
-    return frame
+ 
 
 
-def draw_alert(frame: np.ndarray, text: str, level: str = "info") -> np.ndarray:
-    color = (0, 165, 255) if level == "warn" else (0, 0, 255) if level == "error" else (0, 140, 255)
-    h, w = frame.shape[:2]
-    pad = 10
-    (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_DUPLEX, 0.75, 1)
-    box_w = min(w - 40, tw + 28)
-    x = (w - box_w) // 2
-    y = 60
-    _draw_rounded_rect(frame, (x, y, box_w, th + 20), color, radius=12, thickness=-1)
-    cv2.putText(frame, text, (x + 14, y + th + 6), cv2.FONT_HERSHEY_DUPLEX, 0.75, (255, 255, 255), 1)
-    return frame
+ 
 
 
 def draw_stats_panel(frame: np.ndarray, stats: Dict[str, str]) -> np.ndarray:

@@ -1,15 +1,14 @@
 import cv2
 import numpy as np
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple
 import time
-import logging
 
 from .config import (
     BOX_COLOR, TEXT_COLOR, BOX_THICKNESS, TEXT_THICKNESS,
-    FONT_SCALE, TEXT_PADDING, SHOW_FPS, SHOW_DETECTION_COUNT
+    FONT_SCALE, TEXT_PADDING
 )
 
-logger = logging.getLogger(__name__)
+ 
 
 
 class FPSMeter:
@@ -116,53 +115,7 @@ def draw_detections(frame: np.ndarray, detections: List[Dict]) -> np.ndarray:
     return frame
 
 
-def draw_info_panel(frame: np.ndarray, fps: float = None, 
-                   detection_count: int = None, 
-                   detection_summary: Dict[str, int] = None) -> np.ndarray:
-    height, width = frame.shape[:2]
-    overlay = frame.copy()
-    
-    panel_width = 300
-    panel_height = 150
-    panel_x = width - panel_width - 10
-    panel_y = 10
-    
-    cv2.rectangle(overlay, (panel_x, panel_y), 
-                 (panel_x + panel_width, panel_y + panel_height), 
-                 (0, 0, 0), -1)
-    
-    alpha = 0.7
-    cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
-    
-    y_offset = panel_y + 25
-    line_height = 20
-    
-    if SHOW_FPS and fps is not None:
-        cv2.putText(frame, f"FPS: {fps:.1f}", 
-                   (panel_x + 10, y_offset), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-        y_offset += line_height
-    
-    if SHOW_DETECTION_COUNT and detection_count is not None:
-        cv2.putText(frame, f"Detections: {detection_count}", 
-                   (panel_x + 10, y_offset), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-        y_offset += line_height
-    
-    if detection_summary:
-        cv2.putText(frame, "Living Beings:", 
-                   (panel_x + 10, y_offset), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-        y_offset += line_height
-        
-        for class_name, count in detection_summary.items():
-            if y_offset < panel_y + panel_height - 10:
-                cv2.putText(frame, f"  {class_name}: {count}", 
-                           (panel_x + 10, y_offset), 
-                           cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)
-                y_offset += line_height - 5
-    
-    return frame
+ 
 
 
 def resize_frame(frame: np.ndarray, max_size: Tuple[int, int] = None) -> np.ndarray:

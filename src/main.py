@@ -12,7 +12,7 @@ from .config import (
 from .detection import create_detector, DetectionTracker
 from .utils import FPSMeter, draw_detections, resize_frame, validate_frame
 from .ui import apply_hud
-from .audio_feedback import create_audio_feedback, create_detection_announcer
+ 
 
 logging.basicConfig(
     level=getattr(logging, LOG_LEVEL.upper()),
@@ -24,8 +24,7 @@ logger = logging.getLogger(__name__)
 class VideoTracker:
     
     def __init__(self, video_source: Union[int, str] = None, 
-                 model_path: str = None, enable_audio: bool = True,
-                 enable_tts: bool = False, output_path: str = None):
+                 model_path: str = None, output_path: str = None):
         
         self.video_source = video_source or DEFAULT_VIDEO_SOURCE
         self.output_path = output_path
@@ -35,8 +34,8 @@ class VideoTracker:
         self.detector = create_detector(model_path)
         self.tracker = DetectionTracker()
         self.fps_meter = FPSMeter()
-        self.audio_feedback = create_audio_feedback(enable_audio)
-        self.announcer = create_detection_announcer(enable_tts)
+        self.audio_feedback = None
+        self.announcer = None
         
         self.frame_count = 0
         self.running = False
@@ -128,9 +127,7 @@ class VideoTracker:
                 
                 processed_frame, detections, detection_summary = self.process_frame(frame)
                 
-                if detections:
-                    self.audio_feedback.play_detection_alert(detections)
-                    self.announcer.announce_detections(detections)
+                # Audio removed
                 
                 if self.out_writer:
                     self.out_writer.write(processed_frame)
@@ -299,17 +296,7 @@ Examples:
         help='Calibration scale: pixels per meter (e.g., 50).'
     )
     
-    parser.add_argument(
-        '--no-audio',
-        action='store_true',
-        help='Disable audio feedback'
-    )
-    
-    parser.add_argument(
-        '--tts',
-        action='store_true',
-        help='Enable text-to-speech announcements'
-    )
+    # Audio options removed
     
     parser.add_argument(
         '--verbose', '-v',
@@ -412,8 +399,7 @@ Examples:
         tracker = VideoTracker(
             video_source=video_source,
             model_path=model_path,
-            enable_audio=not args.no_audio,
-            enable_tts=args.tts,
+            
             output_path=args.output
         )
         
