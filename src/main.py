@@ -5,13 +5,13 @@ import logging
 from pathlib import Path
 from typing import Union
 
-from .config import (
+from core.config import (
     DEFAULT_VIDEO_SOURCE, MAX_FRAME_SIZE, PROCESS_EVERY_N_FRAMES,
     OUTPUT_VIDEO_FPS, LOG_LEVEL, LOG_DETECTIONS
 )
-from .detection import create_detector, DetectionTracker
-from .utils import FPSMeter, draw_detections, resize_frame, validate_frame
-from .ui import apply_hud
+from core.detection import create_detector, DetectionTracker
+from core.utils import FPSMeter, draw_detections, resize_frame, validate_frame
+from core.ui import apply_hud
  
 
 logging.basicConfig(
@@ -176,7 +176,7 @@ class VideoTracker:
 
 def apply_config_preset(preset: str):
     """Apply configuration preset by modifying config module variables."""
-    import src.config as config
+    import core.config as config
     
     if preset == 'balanced':
         # Default balanced settings (already in config.py)
@@ -225,23 +225,6 @@ def main():
     parser = argparse.ArgumentParser(
         description="Morph1x - Real-time detection and tracking",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  # Use webcam (default)
-  python -m src.main
-  
-  # Process video file
-  python -m src.main --source "video.mp4"
-  
-  # High accuracy mode with TTS
-  python -m src.main --preset high-accuracy --tts
-  
-  # Save processed video
-  python -m src.main --source "input.mp4" --output "output.mp4"
-  
-  # Performance mode for low-end devices
-  python -m src.main --preset performance
-        """
     )
     
     parser.add_argument(
@@ -314,7 +297,7 @@ Examples:
     
     # Handle list-classes option
     if args.list_classes:
-        from .config import PRIMARY_LIVING_BEINGS
+        from core.config import PRIMARY_LIVING_BEINGS
         print("Morph1x - Detectable Living Beings:")
         print("=" * 40)
         for class_id, class_name in PRIMARY_LIVING_BEINGS.items():
@@ -333,7 +316,7 @@ Examples:
         if not 0.0 <= args.confidence <= 1.0:
             print(f"Error: Confidence must be between 0.0 and 1.0, got {args.confidence}")
             sys.exit(1)
-        import src.config as config
+        import core.config as config
         config.CONFIDENCE_THRESHOLD = args.confidence
         print(f"Confidence threshold set to: {args.confidence}")
 
@@ -344,7 +327,7 @@ Examples:
             width, height = int(width_str), int(height_str)
             if width <= 0 or height <= 0:
                 raise ValueError("Resolution must be positive")
-            import src.config as config
+            import core.config as config
             config.MAX_FRAME_SIZE = (width, height)
             print(f"Processing resolution set to: {width}x{height}")
         except Exception as e:
@@ -356,14 +339,14 @@ Examples:
         print("Error: Use either --meters-per-pixel or --pixels-per-meter, not both.")
         sys.exit(1)
     if args.meters_per_pixel is not None:
-        import src.config as config
+        import core.config as config
         if args.meters_per_pixel <= 0:
             print("Error: --meters-per-pixel must be > 0")
             sys.exit(1)
         config.METERS_PER_PIXEL = float(args.meters_per_pixel)
         print(f"Meters per pixel set to: {config.METERS_PER_PIXEL}")
     if args.pixels_per_meter is not None:
-        import src.config as config
+        import core.config as config
         if args.pixels_per_meter <= 0:
             print("Error: --pixels-per-meter must be > 0")
             sys.exit(1)
