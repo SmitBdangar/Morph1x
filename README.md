@@ -71,18 +71,6 @@ python -m src.main --source "input.mp4" --output "output.mp4"
 python -m src.main --confidence 0.6
 ```
 
-**Enable text-to-speech:**
-
-```bash
-python -m src.main --tts
-```
-
-**Disable audio feedback:**
-
-```bash
-python -m src.main --no-audio
-```
-
 **List detectable classes:**
 
 ```bash
@@ -95,15 +83,9 @@ python -m src.main --list-classes
 python -m src.main --verbose
 ```
 
-### Controls During Runtime
-
-* `q` or `ESC` - Quit
-* `p` - Pause/Resume
-* `r` - Reset tracker
-
 ## Configuration Presets
 
-| Preset        | Confidence | IOU  | Max Detections | Frame Size | Use Case          |
+| Preset        | threshold  | IOU  | Max Detections | Frame Size | Use Case          |
 | ------------- | ---------- | ---- | -------------- | ---------- | ----------------- |
 | balanced      | 0.5        | 0.45 | 100            | 1280x720   | General use       |
 | high-accuracy | 0.3        | 0.3  | 200            | 1920x1080  | Maximum detection |
@@ -115,24 +97,15 @@ python -m src.main --verbose
 ```
 Morph1x-1/
 ├── src/
-│   ├── main.py           # Main entry point
-│   ├── detection.py      # YOLOv8 detection logic
-│   ├── audio_feedback.py # Audio and TTS functionality
-│   ├── utils.py          # Utility functions
-│   └── config.py         # Configuration settings
+│   ├── main.py       
+│   ├── detection.py     
+│   ├── utils.py        
+│   └── config.py        
+|
 ├── models/
-│   └── yolov8n.pt        # YOLOv8 model file
-├── tests/
-│   └── test_detection.py # Unit tests
-└── requirements.txt      # Dependencies
-```
-
-## Testing
-
-Run the test suite:
-
-```bash
-python -m pytest tests/ -v
+│   └── yolov8n.pt        
+|
+└── requirements.txt     
 ```
 
 ## Requirements
@@ -141,6 +114,5 @@ python -m pytest tests/ -v
 * OpenCV
 * Ultralytics YOLOv8
 * NumPy
-* Pygame (for audio)
 
 See `requirements.txt` for the complete dependency list.
