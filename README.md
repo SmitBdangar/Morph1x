@@ -1,45 +1,45 @@
-# Morph1x - Intelligent Vision System
+# Morph1x
 
-An enterprise-grade object detection and tracking system powered by YOLOv8 with real-time visualization, API server, and video processing capabilities.
+An object detection and tracking system powered by YOLOv8 with real-time visualization, API server, and video processing capabilities.
 
-## 🎯 Features
+## Features
 
-- ✅ **Real-time Object Detection** - YOLOv8 with 80 COCO classes
-- ✅ **Object Tracking** - ByteTrack integration for persistent tracking
-- ✅ **Live Visualization** - HUD panel with detection info
-- ✅ **REST API** - FastAPI with streaming and detection endpoints
-- ✅ **Video Processing** - Batch video processing with output saving
-- ✅ **Configuration Management** - YAML-based centralized config
-- ✅ **Enterprise Structure** - Production-ready project layout
-- ✅ **Logging & Monitoring** - Comprehensive logging system
-- ✅ **GPU Support** - CUDA acceleration available
+-  **Real-time Object Detection** - YOLOv8 with 80 COCO classes
+-  **Object Tracking** - ByteTrack integration for persistent tracking
+-  **Live Visualization** - HUD panel with detection info
+-  **REST API** - FastAPI with streaming and detection endpoints
+-  **Video Processing** - Batch video processing with output saving
+-  **Configuration Management** - YAML-based centralized config
+-  **Enterprise Structure** - Production-ready project layout
+-  **Logging & Monitoring** - Comprehensive logging system
+-  **GPU Support** - CUDA acceleration available
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 MORPH1X/
 ├── data/
-│   ├── raw/                 # Original data
-│   ├── processed/           # Transformed data
-│   └── external/            # Pre-trained weights
-├── notebooks/               # Jupyter notebooks
+│   ├── raw/             
+│   ├── processed/          
+│   └── external/          
+├── notebooks/        
 ├── models/
-│   ├── current/             # Active model
-│   └── archives/            # Model versions
+│   ├── current/        
+│   └── archives/           
 ├── src/
-│   ├── core/                # Core logic
+│   ├── core/               
 │   │   ├── detection.py
 │   │   ├── postprocessing/
 │   │   └── visualization/
 │   ├── api/
-│   │   └── main.py          # FastAPI app
+│   │   └── main.py          
 │   ├── scripts/
 │   │   ├── run_detection.py
 │   │   └── process_video.py
 │   └── utils.py
 ├── config/
-│   ├── model_config.yaml    # Model settings
-│   └── deployment.yaml      # Environment settings
+│   ├── model_config.yaml    
+│   └── deployment.yaml      
 ├── tests/
 │   ├── unit/
 │   └── integration/
@@ -48,7 +48,7 @@ MORPH1X/
 └── README.md
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Installation
 
@@ -64,8 +64,6 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Install package in development mode (optional)
-pip install -e .
 ```
 
 ### 2. Download Model
@@ -98,7 +96,7 @@ video:
 **CLI Runner (with HUD):**
 ```bash
 python src/scripts/run_detection.py "path/to/video.mp4"
-python src/scripts/run_detection.py 0  # Webcam
+python src/scripts/run_detection.py 
 ```
 
 **Process Video (save output):**
@@ -133,15 +131,6 @@ tracking:
   persist: true
   max_age: 30
 
-classes:
-  allowed:
-    - person
-    - car
-    - dog
-    - cow
-    - motorbike
-    - bicycle
-    - buffalo
 ```
 
 ### Deployment Configuration (`config/deployment.yaml`)
@@ -163,7 +152,7 @@ logging:
   file: "logs/morph1x.log"
 ```
 
-## 📡 API Endpoints
+## API Endpoints
 
 ### Health Check
 ```
@@ -226,23 +215,6 @@ Content-Type: application/json
 ```
 http://localhost:8000/docs
 ```
-
-## 📊 Usage Examples
-
-### Python Script
-
-```python
-from src.core import ObjectDetector, HUDRenderer
-from src.utils import load_config
-
-config = load_config("config/model_config.yaml")
-detector = ObjectDetector(config["model"]["path"])
-renderer = HUDRenderer(config=config["visualization"])
-
-detections = detector.detect(frame, config["classes"]["allowed"])
-frame = renderer.draw_detections(frame, detections)
-```
-
 ### Command Line
 
 ```bash
@@ -270,7 +242,7 @@ curl -X POST "http://localhost:8000/detect" \
 curl "http://localhost:8000/stream" > video.mpg
 ```
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run all tests
@@ -283,7 +255,7 @@ pytest tests/ --cov=src
 pytest tests/unit/test_detector.py -v
 ```
 
-## 📈 Performance Tips
+## Performance Tips
 
 1. **Frame Size**: Lower `MAX_FRAME_SIZE` for faster processing
    ```yaml
@@ -307,7 +279,7 @@ pytest tests/unit/test_detector.py -v
      confidence_threshold: 0.6
    ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### ModuleNotFoundError
 ```bash
@@ -334,13 +306,13 @@ mkdir -p models/current
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 ```
 
-## 📚 Documentation
+## Documentation
 
 - **Model Config**: See `config/model_config.yaml` for all parameters
 - **API Docs**: Interactive Swagger UI at `http://localhost:8000/docs`
 - **Code**: Well-documented with docstrings throughout
 
-## 🤝 Contributing
+## Contributing
 
 Contributions welcome! Please ensure:
 - Code follows PEP 8
@@ -348,15 +320,15 @@ Contributions welcome! Please ensure:
 - Documentation is updated
 - Config changes are documented
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License.
 
-## 🙋 Support
+## Support
 
 For issues, questions, or suggestions, please open an issue on GitHub.
 
-## 🎓 References
+## References
 
 - [YOLOv8 Documentation](https://docs.ultralytics.com/)
 - [ByteTrack Paper](https://arxiv.org/abs/2110.06864)
