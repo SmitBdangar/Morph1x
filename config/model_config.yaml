@@ -1,0 +1,56 @@
+# Model Configuration for Morph1x
+# Hyperparameters, model paths, and inference settings
+
+model:
+  name: "yolov8n"
+  path: "models/current/yolov8n.pt"
+  framework: "ultralytics"
+  version: "v8"
+
+inference:
+  confidence_threshold: 0.5
+  iou_threshold: 0.45
+  max_detections: 300
+  device: "cuda"  # Options: "cuda", "cpu", "mps"
+
+tracking:
+  tracker: "bytetrack"
+  persist: true
+  max_age: 30  # frames to keep track without detection
+  min_hits: 3  # frames to confirm a new track
+
+classes:
+  allowed:
+    - "person"
+    - "car"
+    - "dog"
+    - "cow"
+    - "motorbike"
+    - "bicycle"
+    - "buffalo"
+  total_classes: 80  # YOLOv8 detects 80 COCO classes by default
+
+visualization:
+  frame_resize:
+    max_width: 1280
+    max_height: 720
+  colors:
+    person: [0, 200, 0]
+    car: [0, 180, 255]
+    dog: [255, 120, 50]
+    cow: [180, 100, 255]
+    motorbike: [255, 180, 0]
+    bicycle: [255, 220, 0]
+    buffalo: [100, 200, 100]
+  hud:
+    panel_width: 280
+    panel_bg_color: [0, 0, 0]
+    header_color: [0, 255, 180]
+    accent_color: [0, 255, 140]
+    divider_color: [60, 60, 70]
+
+paths:
+  data_raw: "data/raw"
+  data_processed: "data/processed"
+  models_current: "models/current"
+  models_archive: "models/archives"
