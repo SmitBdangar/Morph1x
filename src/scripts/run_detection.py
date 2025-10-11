@@ -1,8 +1,3 @@
-"""
-Command-line runner for Morph1x detection system.
-Processes video with real-time display and HUD panel.
-"""
-
 import cv2
 import sys
 import logging
@@ -10,13 +5,11 @@ import argparse
 from pathlib import Path
 import numpy as np
 
-# Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.core import ObjectDetector, HUDRenderer
 from src.utils import FPSMeter, validate_frame, resize_frame, load_config
 
-# ============ LOGGING ============
 logging.basicConfig(
     level=logging.INFO,
     format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s'
@@ -25,11 +18,9 @@ logger = logging.getLogger(__name__)
 
 
 class DetectionRunner:
-    """Main detection runner with real-time visualization."""
     
     def __init__(self, config_path: str = "config/model_config.yaml"):
-        """Initialize detection runner."""
-        logger.info("Initializing Morph1x Detection Runner...")
+        logger.info("start")
         
         self.config = load_config(config_path)
         
@@ -51,15 +42,8 @@ class DetectionRunner:
         self.hud_width = self.config["visualization"]["hud"]["panel_width"]
     
     def run(self, video_source: str) -> None:
-        """
-        Run detection on video source.
-        
-        Args:
-            video_source: Path to video file or camera index.
-        """
         logger.info(f"Starting detection on: {video_source}")
         
-        # Handle camera index or file path
         if video_source.isdigit():
             cap = cv2.VideoCapture(int(video_source))
         else:
@@ -87,26 +71,21 @@ class DetectionRunner:
                     logger.warning("Invalid frame skipped")
                     continue
                 
-                # Resize
                 frame = resize_frame(frame, (
                     self.config["visualization"]["frame_resize"]["max_width"],
                     self.config["visualization"]["frame_resize"]["max_height"]
                 ))
-                
-                # Detect
+
                 detections = self.detector.detect(
                     frame,
                     self.config["classes"]["allowed"]
                 )
-                
-                # Draw detections
+
                 frame_with_boxes = self.renderer.draw_detections(frame.copy(), detections)
-                
-                # Get active IDs
+
                 active_ids = list(set([d["unique_id"] for d in detections]))
                 active_ids.sort()
                 
-                # Create HUD panel
                 panel = np.zeros(
                     (frame_with_boxes.shape[0], self.hud_width, 3),
                     dtype=np.uint8
@@ -118,10 +97,8 @@ class DetectionRunner:
                     active_ids
                 )
                 
-                # Combine
                 combined = np.hstack((frame_with_boxes, panel))
                 
-                # FPS
                 self.fps_meter.update()
                 fps = self.fps_meter.get_fps()
                 
@@ -135,12 +112,11 @@ class DetectionRunner:
                     2
                 )
                 
-                # Display
-                cv2.imshow("Morph1x - Intelligent Vision System", combined)
+                cv2.imshow("Morph1x", combined)
                 
                 key = cv2.waitKey(1) & 0xFF
                 if key == ord('q'):
-                    logger.info("Quit requested by user")
+                    logger.info("Quit")
                     break
         
         except Exception as e:
@@ -149,20 +125,13 @@ class DetectionRunner:
         finally:
             cap.release()
             cv2.destroyAllWindows()
-            logger.info("Detection runner stopped successfully")
+            logger.info("stop successfully")
 
 
 def main():
-    """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="Morph1x - Intelligent Vision System",
+        description="Morph1x",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  python run_detection.py "C:\\path\\to\\video.mp4"
-  python run_detection.py 0                              # Webcam
-  python run_detection.py "video.mp4" -c config/model_config.yaml
-        """
     )
     
     parser.add_argument("source", help="Video file path or camera index (0 for webcam)")
@@ -171,7 +140,6 @@ Examples:
     args = parser.parse_args()
     
     logger.info("=" * 60)
-    logger.info("MORPH1X - Intelligent Vision System")
     logger.info("=" * 60)
     
     try:
