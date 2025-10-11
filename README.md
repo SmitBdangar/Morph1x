@@ -124,7 +124,7 @@ model:
 inference:
   confidence_threshold: 0.5
   iou_threshold: 0.45
-  device: "cuda"  # cuda, cpu, mps
+  device: "cuda"
 
 tracking:
   tracker: "bytetrack"
@@ -136,7 +136,7 @@ tracking:
 ### Deployment Configuration (`config/deployment.yaml`)
 
 ```yaml
-environment: "development"  # development, staging, production
+environment: "development" 
 
 api:
   host: "0.0.0.0"

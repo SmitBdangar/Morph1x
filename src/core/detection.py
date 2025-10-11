@@ -1,40 +1,23 @@
-"""
-Core detection module for Morph1x.
-Handles YOLOv8 inference and object tracking.
-"""
-
 import numpy as np
 from ultralytics import YOLO
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 import logging
 
 logger = logging.getLogger(__name__)
 
 
 class ObjectDetector:
-    """YOLOv8-based object detector with ByteTrack integration."""
     
     def __init__(self, model_path: str, conf_threshold: float = 0.5, iou_threshold: float = 0.45):
-        """
-        Initialize detector with YOLO model.
-        
-        Args:
-            model_path: Path to YOLOv8 model file.
-            conf_threshold: Confidence threshold for detections.
-            iou_threshold: IOU threshold for NMS.
-        
-        Raises:
-            FileNotFoundError: If model file doesn't exist.
-        """
         if not Path(model_path).exists():
-            raise FileNotFoundError(f"Model not found: {model_path}")
+            raise FileNotFoundError(f"import model first or the path is worong: {model_path}")
         
         logger.info(f"Loading YOLOv8 model: {model_path}")
         self.model = YOLO(model_path)
         self.conf_threshold = conf_threshold
         self.iou_threshold = iou_threshold
-        logger.info("Model loaded successfully")
+        logger.info("successfully")
     
     def detect(
         self,
@@ -42,22 +25,8 @@ class ObjectDetector:
         allowed_classes: set,
         persist: bool = True
     ) -> List[Dict]:
-        """
-        Run detection and tracking on frame.
-        
-        Args:
-            frame: Input frame as NumPy array.
-            allowed_classes: Set of class names to detect.
-            persist: Enable object persistence tracking.
-        
-        Returns:
-            List of detection dictionaries with bbox, class, confidence, and tracking info.
-        
-        Raises:
-            ValueError: If frame is invalid.
-        """
         if frame is None or frame.size == 0:
-            raise ValueError("Invalid frame received")
+            raise ValueError("there is a problem with frame")
         
         results = self.model.track(
             frame,
@@ -94,12 +63,6 @@ class ObjectDetector:
         return detections
     
     def get_model_info(self) -> Dict[str, any]:
-        """
-        Get information about the loaded model.
-        
-        Returns:
-            Dictionary containing model metadata.
-        """
         return {
             "model_name": self.model.model_name,
             "task": self.model.task,

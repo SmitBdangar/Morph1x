@@ -1,8 +1,3 @@
-"""
-Utility functions and classes for Morph1x.
-Frame processing, FPS measurement, and configuration management.
-"""
-
 import cv2
 import numpy as np
 import yaml
@@ -15,16 +10,13 @@ logger = logging.getLogger(__name__)
 
 
 class FPSMeter:
-    """Measure frames per second in real-time."""
     
     def __init__(self):
-        """Initialize FPS meter."""
         self.start_time = time.time()
         self.frame_count = 0
         self.fps = 0.0
     
     def update(self) -> None:
-        """Update frame count and recalculate FPS."""
         self.frame_count += 1
         elapsed = time.time() - self.start_time
         if elapsed >= 1.0:
@@ -33,26 +25,15 @@ class FPSMeter:
             self.start_time = time.time()
     
     def get_fps(self) -> float:
-        """Return current FPS value."""
         return round(self.fps, 2)
     
     def reset(self) -> None:
-        """Reset FPS calculation."""
         self.start_time = time.time()
         self.frame_count = 0
         self.fps = 0.0
 
 
 def validate_frame(frame: Optional[np.ndarray]) -> bool:
-    """
-    Validate if frame is a proper 3-channel image.
-    
-    Args:
-        frame: Frame to validate.
-    
-    Returns:
-        True if frame is valid, False otherwise.
-    """
     return (
         frame is not None
         and isinstance(frame, np.ndarray)
@@ -61,23 +42,9 @@ def validate_frame(frame: Optional[np.ndarray]) -> bool:
         and frame.size > 0
     )
 
-
 def resize_frame(frame: np.ndarray, max_size: Tuple[int, int]) -> np.ndarray:
-    """
-    Resize frame while maintaining aspect ratio.
-    
-    Args:
-        frame: Input frame as NumPy array.
-        max_size: (width, height) tuple for max frame size.
-    
-    Returns:
-        Resized frame as NumPy array.
-    
-    Raises:
-        ValueError: If frame is invalid.
-    """
     if not validate_frame(frame):
-        raise ValueError("Invalid frame passed to resize_frame()")
+        raise ValueError("Invalid frame")
     
     max_width, max_height = max_size
     height, width = frame.shape[:2]
@@ -91,18 +58,6 @@ def resize_frame(frame: np.ndarray, max_size: Tuple[int, int]) -> np.ndarray:
 
 
 def load_config(config_path: str) -> Dict:
-    """
-    Load YAML configuration file.
-    
-    Args:
-        config_path: Path to YAML config file.
-    
-    Returns:
-        Configuration dictionary.
-    
-    Raises:
-        FileNotFoundError: If config file doesn't exist.
-    """
     path = Path(config_path)
     if not path.exists():
         raise FileNotFoundError(f"Config file not found: {config_path}")
@@ -115,13 +70,6 @@ def load_config(config_path: str) -> Dict:
 
 
 def save_config(config: Dict, config_path: str) -> None:
-    """
-    Save configuration to YAML file.
-    
-    Args:
-        config: Configuration dictionary.
-        config_path: Path to save YAML file.
-    """
     path = Path(config_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     
@@ -132,12 +80,6 @@ def save_config(config: Dict, config_path: str) -> None:
 
 
 def create_directories(directory_structure: Dict) -> None:
-    """
-    Create directory structure.
-    
-    Args:
-        directory_structure: Dictionary mapping directory names to paths.
-    """
     for name, path in directory_structure.items():
         Path(path).mkdir(parents=True, exist_ok=True)
         logger.debug(f"Created directory: {path}")
