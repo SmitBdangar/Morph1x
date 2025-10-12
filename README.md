@@ -17,36 +17,6 @@ An object detection and tracking system powered by YOLOv8 with real-time visuali
 ## Project Structure
 
 ```
-MORPH1X/
-├── data/
-│   ├── raw/             
-│   ├── processed/          
-│   └── external/          
-├── notebooks/        
-├── models/
-│   ├── current/        
-│   └── archives/           
-├── src/
-│   ├── core/               
-│   │   ├── detection.py
-│   │   ├── postprocessing/
-│   │   └── visualization/
-│   ├── api/
-│   │   └── main.py          
-│   ├── scripts/
-│   │   ├── run_detection.py
-│   │   └── process_video.py
-│   └── utils.py
-├── config/
-│   ├── model_config.yaml    
-│   └── deployment.yaml      
-├── tests/
-│   ├── unit/
-│   └── integration/
-├── requirements.txt
-├── setup.py
-└── README.md
-```
 
 ## Quick Start
 
@@ -112,45 +82,9 @@ python src/api/main.py
 # Docs at http://localhost:8000/docs
 ```
 
-## 🔧 Configuration
-
-### Model Configuration (`config/model_config.yaml`)
-
-```yaml
-model:
-  name: "yolov8n"
-  path: "models/current/yolov8n.pt"
-
-inference:
-  confidence_threshold: 0.5
-  iou_threshold: 0.45
-  device: "cuda"
-
-tracking:
-  tracker: "bytetrack"
-  persist: true
-  max_age: 30
-
-```
-
 ### Deployment Configuration (`config/deployment.yaml`)
 
 ```yaml
-environment: "development" 
-
-api:
-  host: "0.0.0.0"
-  port: 8000
-  workers: 4
-
-video:
-  source: "video.mp4"
-  save_output: false
-
-logging:
-  level: "INFO"
-  file: "logs/morph1x.log"
-```
 
 ## API Endpoints
 
@@ -183,40 +117,6 @@ Response:
   "fps": 24.5
 }
 ```
-
-### Stream Video
-```
-GET /stream
-```
-
-### Model Information
-```
-GET /model/info
-```
-
-### Get Configuration
-```
-GET /config/model
-GET /config/deployment
-```
-
-### Update Configuration
-```
-POST /config/update
-Content-Type: application/json
-
-{
-  "conf_threshold": 0.6,
-  "iou_threshold": 0.5
-}
-```
-
-### Interactive API Docs
-```
-http://localhost:8000/docs
-```
-### Command Line
-
 ```bash
 # Run on video with HUD
 python src/scripts/run_detection.py "C:\video.mp4"
@@ -306,27 +206,9 @@ mkdir -p models/current
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 ```
 
-## Documentation
-
-- **Model Config**: See `config/model_config.yaml` for all parameters
-- **API Docs**: Interactive Swagger UI at `http://localhost:8000/docs`
-- **Code**: Well-documented with docstrings throughout
-
-## Contributing
-
-Contributions welcome! Please ensure:
-- Code follows PEP 8
-- All tests pass
-- Documentation is updated
-- Config changes are documented
-
 ## License
 
 This project is licensed under the MIT License.
-
-## Support
-
-For issues, questions, or suggestions, please open an issue on GitHub.
 
 ## References
 
