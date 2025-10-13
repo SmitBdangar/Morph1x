@@ -1,10 +1,8 @@
 import argparse
 import logging
 import cv2
-import numpy as np
 from src.core.object_detector import ObjectDetector, VideoCapture, VideoWriter
 from src.core.renderer import HUDRenderer, FPSMeter
-from src.core.Post_processing import PostProcessor
 
 def main():
     # --- CLI arguments ---
@@ -50,11 +48,8 @@ def main():
     # --- Initialization ---
     renderer = HUDRenderer()
     fps_meter = FPSMeter()
-
-    panel_width = 100
-    combined_width = video.frame_width + panel_width
     
-    writer = VideoWriter(args.output, combined_width, video.frame_height, video.fps)
+    writer = VideoWriter(args.output, video.frame_width, video.frame_height, video.fps)
 
     while True:
         ret, frame = video.read()
@@ -72,18 +67,9 @@ def main():
         fps_meter.update()
         frame = renderer.draw_fps(frame, fps_meter.get_fps())
 
-        # 4. Create a blank panel
-        panel = np.zeros((video.frame_height, panel_width, 3), dtype=np.uint8)
-        
-        # 5. Draw the table-style HUD on the panel
-        panel = renderer.draw_panel(panel, detections)
-
-        # 6. Combine the video frame and the panel
-        combined_frame = np.hstack((frame, panel))
-
-        # 7. Show and write the combined frame
-        cv2.imshow("YOLO Detection", combined_frame)
-        writer.write(combined_frame)
+        # 4. Show and write the frame
+        cv2.imshow("YOLO Detection", frame)
+        writer.write(frame)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
