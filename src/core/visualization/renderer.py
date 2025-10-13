@@ -3,7 +3,10 @@ import numpy as np
 from typing import Dict, List, Tuple
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("src.visualization.renderer") 
+
+# If you store HUDRenderer in src/core, change the logger name to "src.core.renderer"
+# If you store HUDRenderer in src/visualization, the name "src.visualization.renderer" is fine.
 
 
 class HUDRenderer:
@@ -52,7 +55,14 @@ class HUDRenderer:
         y = 155
         if active_ids:
             for idx, uid in enumerate(active_ids):
-                uid = uid.strip()
+                uid_original = uid.strip()
+                uid = uid_original
+                
+                # FALLBACK FIX (Cleanup for HUD List Item) - Layer 3
+                if "???" in uid:
+                    uid = uid.replace("??? ", "ID ").replace("???", "ID").strip()
+                    logger.debug(f"PANEL ID FIXED (Layer 3): Original: '{uid_original}' -> Final: '{uid}'")
+
                 if not uid:
                     continue
                 
@@ -83,7 +93,15 @@ class HUDRenderer:
         
         cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
         
-        label = detection["unique_id"]
+        # --- FALLBACK FIX (Cleanup for Box Label) - Layer 3 ---
+        label_original = detection["unique_id"]
+        label = label_original
+        
+        if "???" in label:
+            label = label.replace("??? ", "ID ").replace("???", "ID").strip()
+            logger.debug(f"BOX ID FIXED (Layer 3): Original: '{label_original}' -> Final: '{label}'")
+        # --- END OF SNIPPET ---
+        
         font_scale = 0.5
         thickness = 1
         (text_width, text_height), _ = cv2.getTextSize(label, self.FONT, font_scale, thickness)

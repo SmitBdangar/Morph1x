@@ -4,17 +4,37 @@ import logging
 import argparse
 from pathlib import Path
 import numpy as np
+from typing import List, Dict, Set
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+# --- Ensure project root is on path ---
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
+# --- Simple Package Imports ---
 from src.core import ObjectDetector, HUDRenderer
 from src.utils import FPSMeter, validate_frame, resize_frame, load_config
 
+# Set logging level to DEBUG
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='[%(levelname)s] %(asctime)s - %(name)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# --- CRITICAL SANITIZATION FUNCTION (Layer 2) ---
+def sanitize_detections(detections: List[Dict]) -> List[Dict]:
+    """
+    Performs an aggressive cleanup on all 'unique_id' keys in the detections list.
+    """
+    for det in detections:
+        unique_id = det.get("unique_id", "").strip()
+        
+        if "???" in unique_id:
+            cleaned_id = unique_id.replace("??? ", "ID ").replace("???", "ID").strip()
+            logger.debug(f"Main Loop Sanitized ID (Layer 2): From '{unique_id}' to '{cleaned_id}'")
+            det["unique_id"] = cleaned_id
+            
+    return detections
 
 
 class DetectionRunner:
@@ -22,10 +42,15 @@ class DetectionRunner:
     def __init__(self, config_path: str = "config/model_config.yaml"):
         logger.info("start")
         
-        self.config = load_config(config_path)
+        # Resolve config path relative to the project root
+        absolute_config_path = PROJECT_ROOT / config_path
+        self.config = load_config(str(absolute_config_path))
+        
+        # Resolve model path relative to the project root
+        absolute_model_path = PROJECT_ROOT / self.config["model"]["path"]
         
         self.detector = ObjectDetector(
-            model_path=self.config["model"]["path"],
+            model_path=str(absolute_model_path),
             conf_threshold=self.config["inference"]["confidence_threshold"],
             iou_threshold=self.config["inference"]["iou_threshold"]
         )
@@ -47,10 +72,15 @@ class DetectionRunner:
         if video_source.isdigit():
             cap = cv2.VideoCapture(int(video_source))
         else:
-            if not Path(video_source).exists():
-                logger.error(f"Video file not found: {video_source}")
+            # Resolve video path to absolute path
+            video_path = Path(video_source)
+            if not video_path.is_absolute():
+                video_path = PROJECT_ROOT / video_path
+            
+            if not video_path.exists():
+                logger.error(f"Video file not found: {video_path}")
                 return
-            cap = cv2.VideoCapture(video_source)
+            cap = cv2.VideoCapture(str(video_path))
         
         if not cap.isOpened():
             logger.error(f"Cannot open video source: {video_source}")
@@ -76,13 +106,25 @@ class DetectionRunner:
                     self.config["visualization"]["frame_resize"]["max_height"]
                 ))
 
-                detections = self.detector.detect(
+                # Step 1: Detect objects (Layer 1 cleanup in ObjectDetector)
+                detections: List[Dict] = self.detector.detect(
                     frame,
                     self.config["classes"]["allowed"]
                 )
 
+                # Step 2: SANITIZE THE ENTIRE LIST (Layer 2 cleanup)
+                detections = sanitize_detections(detections)
+                
+                # --- FINAL SANITY CHECK PRINT ---
+                for det in detections:
+                    if "???" in det["unique_id"]:
+                        print(f"!!! CRITICAL FAIL: ID is still '{det['unique_id']}' right before render!")
+                # --- END SANITY CHECK ---
+                    
+                # Step 3: Draw bounding boxes (Layer 3 cleanup in HUDRenderer)
                 frame_with_boxes = self.renderer.draw_detections(frame.copy(), detections)
 
+                # Step 4: Create the active_ids list
                 active_ids = list(set([d["unique_id"] for d in detections]))
                 active_ids.sort()
                 
@@ -143,7 +185,7 @@ def main():
     logger.info("=" * 60)
     
     try:
-        runner = DetectionRunner(args.config)
+        runner = DetectionRunner(args.config) 
         runner.run(args.source)
     
     except FileNotFoundError as e:
