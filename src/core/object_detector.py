@@ -24,48 +24,57 @@ class ObjectDetector:
         self.model = YOLO(model_path)
         self.conf_threshold = conf_threshold
         self.iou_threshold = iou_threshold
-        self.frame_id_counter = 0
+        # Removed self.frame_id_counter as YOLO handles tracking IDs
     
     def detect(self, frame: np.ndarray, allowed_classes: Set[str]) -> List[Dict]:
         """
-        Detect objects in frame and return formatted detections.
-        IDs are assigned sequentially per frame (non-persistent tracking).
+        Track objects in frame and return formatted detections using YOLO's tracker.
+        Persistent IDs are assigned automatically by the tracker.
         """
         if frame is None or frame.size == 0:
             raise ValueError("Invalid or empty frame")
         
-        results = self.model(
+        # --- MODIFIED: Use the track method instead of __call__ (detect) ---
+        results = self.model.track(
             frame,
+            persist=True, # Essential for maintaining IDs across frames
             conf=self.conf_threshold,
             iou=self.iou_threshold,
-            verbose=False
+            verbose=False,
+            # Pass model-level tracking arguments (default is 'botsort.yaml')
+            tracker="bytetrack.yaml" 
         )[0]
         
         detections = []
-        self.frame_id_counter = 0
         
-        if not hasattr(results, "boxes") or results.boxes is None:
+        # Check for both boxes and tracking IDs
+        if not hasattr(results, "boxes") or results.boxes is None or results.boxes.id is None:
             return detections
         
-        for box in results.boxes:
+        # Track IDs are now in results.boxes.id
+        track_ids = results.boxes.id.cpu().numpy().astype(int) 
+        
+        for i, box in enumerate(results.boxes):
             class_id = int(box.cls)
             class_name = self.model.names[class_id]
             
             if class_name not in allowed_classes:
                 continue
             
-            self.frame_id_counter += 1
+            # --- MODIFIED: Get ID from the tracker's output ---
             x1, y1, x2, y2 = map(int, box.xyxy[0])
             confidence = float(box.conf)
+            track_id = track_ids[i]
             
             class_initial = class_name[0].upper()
-            unique_id = f"ID-{self.frame_id_counter}-{class_initial}"
+            # unique_id now uses the persistent track_id
+            unique_id = f"ID-{track_id}-{class_initial}" 
             
             detections.append({
                 "bbox": (x1, y1, x2, y2),
                 "class_name": class_name,
                 "confidence": confidence,
-                "track_id": self.frame_id_counter,
+                "track_id": track_id, # This is the persistent ID
                 "unique_id": unique_id
             })
         
@@ -82,7 +91,7 @@ class ObjectDetector:
             "iou_threshold": self.iou_threshold
         }
 
-
+# ... VideoCapture and VideoWriter classes remain unchanged ...
 class VideoCapture:
     """Video input handler for files and camera streams."""
     

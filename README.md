@@ -18,7 +18,6 @@ python run.py --source "data/video.mp4
 
 ▶ Save Output
 
-Copy code
 python run.py --source 0 --output "output/result.mp4"
 
 

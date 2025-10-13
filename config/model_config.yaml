@@ -19,12 +19,6 @@ tracking:
 classes:
   allowed:
     - "person"
-    - "car"
-    - "dog"
-    - "cow"
-    - "motorbike"
-    - "bicycle"
-    - "buffalo"
   total_classes: 80  
 
 visualization:
@@ -45,9 +39,3 @@ visualization:
     header_color: [0, 255, 180]
     accent_color: [0, 255, 140]
     divider_color: [60, 60, 70]
-
-paths:
-  data_raw: "data/raw"
-  data_processed: "data/processed"
-  models_current: "models/current"
-  models_archive: "models/archives"

@@ -36,22 +36,22 @@ class FPSMeter:
 
 
 class HUDRenderer:
-    """Renders detections and HUD panel on frames."""
+    """Renders detections and a table-style HUD panel on frames."""
     
     FONT = cv2.FONT_HERSHEY_SIMPLEX
     
     def __init__(self, config: Optional[Dict] = None):
         self.config = config or {}
-        self.panel_bg = tuple(self.config.get("panel_bg_color", [0, 0, 0]))
-        self.header_color = tuple(self.config.get("header_color", [0, 255, 180]))
-        self.accent_color = tuple(self.config.get("accent_color", [0, 255, 140]))
-        self.divider_color = tuple(self.config.get("divider_color", [60, 60, 70]))
-        self.class_colors = self.config.get("colors", {})
+        # Simple color scheme with high contrast
+        self.panel_bg = (40, 40, 40)  # Dark gray instead of pure black
+        self.header_color = (255, 255, 255)  # White
+        self.text_color = (220, 220, 220)  # Light gray
+        self.divider_color = (100, 100, 100)  # Medium gray
+        self.default_color = (0, 255, 0)  # Green
     
     def get_class_color(self, class_name: str) -> Tuple[int, int, int]:
-        """Get color for class or default."""
-        color = self.class_colors.get(class_name.lower(), [200, 200, 200])
-        return tuple(color)
+        """Get color for class - always green."""
+        return self.default_color
     
     def draw_detections(self, frame: np.ndarray, detections: List[Dict]) -> np.ndarray:
         """Draw all detections on frame."""
@@ -60,68 +60,106 @@ class HUDRenderer:
         return frame
     
     def _draw_box(self, frame: np.ndarray, detection: Dict) -> None:
-        """Draw single detection box with label."""
+        """Draw simple green box with only ID label - NO class name inside."""
         x1, y1, x2, y2 = detection["bbox"]
-        color = self.get_class_color(detection["class_name"])
-        label = detection["unique_id"]
+        color = self.default_color  # Always green
         
+        # Label format: "0.55 ID: 34"
+        label = f"{detection['confidence']:.2f} ID: {detection['track_id']}"
+        
+        # Draw simple green bounding box
         cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+        
+        # Draw only the ID label above the box - NO class name inside
         self._draw_label(frame, label, x1, y1, color)
-    
+
     def _draw_label(self, frame: np.ndarray, text: str, x: int, y: int,
                     color: Tuple[int, int, int]) -> None:
-        """Draw label above box."""
+        """Draw simple label above box."""
         font_scale = 0.5
         thickness = 1
         (text_w, text_h), _ = cv2.getTextSize(text, self.FONT, font_scale, thickness)
         
         label_y = max(y - 5, text_h + 5)
+        
+        # Draw green background
         cv2.rectangle(frame, (x, label_y - text_h - 5),
                      (x + text_w + 6, label_y), color, -1)
+        
+        # Draw black text on green background
         cv2.putText(frame, text, (x + 3, label_y - 3),
                    self.FONT, font_scale, (0, 0, 0), thickness, cv2.LINE_AA)
     
-    def draw_panel(self, panel: np.ndarray, title: str, 
-                   count: int, ids: List[str]) -> np.ndarray:
-        """Draw HUD info panel."""
-        height = panel.shape[0]
+    def draw_panel(self, panel: np.ndarray, detections: List[Dict]) -> np.ndarray:
+        """Draws a simple table-style HUD with ID and Type - HIGHLY VISIBLE."""
+        
+        # Fill panel with dark gray (not pure black for visibility)
         panel[:] = self.panel_bg
         
-        y = 40
-        cv2.putText(panel, title, (20, y), self.FONT, 0.8,
-                   self.header_color, 2, cv2.LINE_AA)
+        # Get panel dimensions
+        panel_height, panel_width = panel.shape[:2]
         
-        self._draw_divider(panel, y + 15)
-        y += 50
+        # Draw a white border around the entire panel for debugging visibility
+        cv2.rectangle(panel, (0, 0), (panel_width-1, panel_height-1), (255, 255, 255), 3)
         
-        cv2.putText(panel, f"Active: {count}", (15, y), self.FONT,
-                   0.55, self.accent_color, 1, cv2.LINE_AA)
-        self._draw_divider(panel, y + 20)
-        y += 50
+        # Define column positions with more spacing
+        left_margin = 40
+        id_col_x = left_margin
+        type_col_x = left_margin + 100
+        header_y = 60
         
-        cv2.putText(panel, "Tracked IDs:", (15, y), self.FONT,
-                   0.6, (200, 255, 200), 1, cv2.LINE_AA)
-        y += 25
+        # Draw TITLE at the top
+        cv2.putText(panel, "DETECTIONS", (left_margin, 35), self.FONT,
+                    0.8, (0, 255, 255), 2, cv2.LINE_AA)
         
-        if ids:
-            for i, uid in enumerate(ids):
-                if y > height - 60:
-                    cv2.putText(panel, f"...+{len(ids) - i}", (25, y),
-                               self.FONT, 0.5, (100, 100, 100), 1)
-                    break
-                cv2.putText(panel, f"• {uid}", (25, y), self.FONT,
-                           0.5, self.accent_color, 1, cv2.LINE_AA)
-                y += 20
+        # Draw table headers in WHITE with larger font
+        cv2.putText(panel, "ID", (id_col_x, header_y), self.FONT,
+                    0.9, self.header_color, 2, cv2.LINE_AA)
+        cv2.putText(panel, "Type", (type_col_x, header_y), self.FONT,
+                    0.9, self.header_color, 2, cv2.LINE_AA)
+        
+        # Draw thick divider line below header
+        divider_y = header_y + 15
+        cv2.line(panel, (left_margin - 10, divider_y), 
+                (panel_width - left_margin, divider_y), 
+                (255, 255, 255), 3)
+        
+        # Draw table rows from detections
+        row_start_y = divider_y + 50
+        row_spacing = 45
+        
+        if len(detections) == 0:
+            # Show "No detections" message if empty
+            cv2.putText(panel, "No detections", (left_margin, row_start_y), 
+                       self.FONT, 0.7, (150, 150, 150), 2, cv2.LINE_AA)
         else:
-            cv2.putText(panel, "No objects tracked", (25, y), self.FONT,
-                       0.5, (100, 100, 100), 1, cv2.LINE_AA)
+            y = row_start_y
+            for idx, det in enumerate(sorted(detections, key=lambda d: d['track_id'])):
+                # Stop if we run out of space
+                if y > panel_height - 50:
+                    break
+                
+                track_id = str(det['track_id'])
+                class_name = det['class_name'].upper()  # Uppercase for visibility
+                
+                # Draw ID in BRIGHT WHITE with larger font
+                cv2.putText(panel, track_id, (id_col_x, y), self.FONT,
+                            0.8, (255, 255, 255), 2, cv2.LINE_AA)
+                
+                # Draw Type in BRIGHT GREEN with larger font
+                cv2.putText(panel, class_name, (type_col_x, y), self.FONT,
+                            0.8, self.default_color, 2, cv2.LINE_AA)
+                
+                y += row_spacing
         
-        self._draw_divider(panel, height - 40)
-        cv2.putText(panel, "MORPH1X", (20, height - 15), self.FONT,
-                   0.5, (120, 200, 255), 1, cv2.LINE_AA)
+        # Draw count at bottom
+        count_y = panel_height - 30
+        count_text = f"Total: {len(detections)}"
+        cv2.putText(panel, count_text, (left_margin, count_y), 
+                   self.FONT, 0.7, (0, 255, 255), 2, cv2.LINE_AA)
         
         return panel
-    
+
     @staticmethod
     def _draw_divider(panel: np.ndarray, y: int, 
                       color: Tuple[int, int, int] = (60, 60, 70)) -> None:
@@ -130,8 +168,8 @@ class HUDRenderer:
     
     def draw_fps(self, frame: np.ndarray, fps: float) -> np.ndarray:
         """Draw FPS on frame."""
-        cv2.putText(frame, f"FPS: {fps}", (10, 30),
-                   self.FONT, 0.7, (0, 255, 0), 2)
+        cv2.putText(frame, f"FPS: {fps:.1f}", (10, 30),
+                   self.FONT, 0.7, (0, 255, 0), 2, cv2.LINE_AA)
         return frame
     
     def resize_frame(self, frame: np.ndarray, max_size: Tuple[int, int]) -> np.ndarray:
