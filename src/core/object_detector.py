@@ -24,7 +24,6 @@ class ObjectDetector:
         self.model = YOLO(model_path)
         self.conf_threshold = conf_threshold
         self.iou_threshold = iou_threshold
-        # Removed self.frame_id_counter as YOLO handles tracking IDs
     
     def detect(self, frame: np.ndarray, allowed_classes: Set[str]) -> List[Dict]:
         """
@@ -34,24 +33,20 @@ class ObjectDetector:
         if frame is None or frame.size == 0:
             raise ValueError("Invalid or empty frame")
         
-        # --- MODIFIED: Use the track method instead of __call__ (detect) ---
         results = self.model.track(
             frame,
-            persist=True, # Essential for maintaining IDs across frames
+            persist=True,
             conf=self.conf_threshold,
             iou=self.iou_threshold,
             verbose=False,
-            # Pass model-level tracking arguments (default is 'botsort.yaml')
             tracker="bytetrack.yaml" 
         )[0]
         
         detections = []
         
-        # Check for both boxes and tracking IDs
         if not hasattr(results, "boxes") or results.boxes is None or results.boxes.id is None:
             return detections
         
-        # Track IDs are now in results.boxes.id
         track_ids = results.boxes.id.cpu().numpy().astype(int) 
         
         for i, box in enumerate(results.boxes):
@@ -61,20 +56,18 @@ class ObjectDetector:
             if class_name not in allowed_classes:
                 continue
             
-            # --- MODIFIED: Get ID from the tracker's output ---
             x1, y1, x2, y2 = map(int, box.xyxy[0])
             confidence = float(box.conf)
             track_id = track_ids[i]
             
             class_initial = class_name[0].upper()
-            # unique_id now uses the persistent track_id
             unique_id = f"ID-{track_id}-{class_initial}" 
             
             detections.append({
                 "bbox": (x1, y1, x2, y2),
                 "class_name": class_name,
                 "confidence": confidence,
-                "track_id": track_id, # This is the persistent ID
+                "track_id": track_id,
                 "unique_id": unique_id
             })
         
@@ -91,7 +84,7 @@ class ObjectDetector:
             "iou_threshold": self.iou_threshold
         }
 
-# ... VideoCapture and VideoWriter classes remain unchanged ...
+
 class VideoCapture:
     """Video input handler for files and camera streams."""
     
@@ -163,7 +156,7 @@ class VideoCapture:
 
 
 class VideoWriter:
-    """Video output writer."""
+    """Video output writer with better codec support."""
     
     def __init__(self, output_path: str, frame_width: int, 
                  frame_height: int, fps: int):
@@ -172,11 +165,38 @@ class VideoWriter:
         
         if output_path:
             Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            self.writer = cv2.VideoWriter(
-                output_path, fourcc, fps, (frame_width, frame_height)
-            )
-            logger.info(f"Output writer initialized: {output_path}")
+            
+            # Try different codecs in order of preference
+            codecs = [
+                ('mp4v', '.mp4'),
+                ('H264', '.mp4'),
+                ('MJPG', '.avi'),
+                ('XVID', '.avi'),
+            ]
+            
+            for codec_name, ext in codecs:
+                try:
+                    fourcc = cv2.VideoWriter_fourcc(*codec_name) if codec_name != 'H264' else cv2.VideoWriter_fourcc(*'H264')
+                    output_file = output_path.replace('.mp4', ext).replace('.avi', ext)
+                    
+                    self.writer = cv2.VideoWriter(
+                        output_file, fourcc, fps, (frame_width, frame_height)
+                    )
+                    
+                    if self.writer and self.writer.isOpened():
+                        logger.info(f"Output writer initialized with {codec_name} codec: {output_file}")
+                        break
+                    else:
+                        self.writer = None
+                except Exception as e:
+                    logger.warning(f"Codec {codec_name} failed: {e}")
+                    self.writer = None
+            
+            if not self.writer:
+                logger.warning("No suitable codec found, trying default...")
+                self.writer = cv2.VideoWriter(
+                    output_path, 0, fps, (frame_width, frame_height)
+                )
     
     def write(self, frame: np.ndarray) -> None:
         """Write frame to output."""
