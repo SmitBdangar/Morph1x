@@ -5,7 +5,6 @@ from src.core.object_detector import ObjectDetector, VideoCapture, VideoWriter
 from src.core.renderer import HUDRenderer, FPSMeter
 
 def main():
-    # --- CLI arguments ---
     parser = argparse.ArgumentParser(description="YOLO Object Detection Runner")
     parser.add_argument(
         "--source", type=str, default="0",
@@ -33,7 +32,6 @@ def main():
     )
     args = parser.parse_args()
 
-    # --- Logging setup ---
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger("runner")
 
@@ -45,7 +43,6 @@ def main():
         logger.error("Failed to open video source.")
         return
 
-    # --- Initialization ---
     renderer = HUDRenderer()
     fps_meter = FPSMeter()
     
@@ -57,17 +54,13 @@ def main():
             logger.info("End of stream or read error.")
             break
 
-        # 1. Get detections
         detections = detector.detect(frame, set(args.classes))
 
-        # 2. Draw detection boxes and labels on the frame
         frame = renderer.draw_detections(frame, detections)
         
-        # 3. Update and draw FPS
         fps_meter.update()
         frame = renderer.draw_fps(frame, fps_meter.get_fps())
 
-        # 4. Show and write the frame
         cv2.imshow("YOLO Detection", frame)
         writer.write(frame)
 
