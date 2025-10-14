@@ -1,6 +1,3 @@
-"""
-Object detection module using YOLO.
-"""
 import logging
 from pathlib import Path
 from typing import Dict, List, Set, Optional, Tuple
@@ -12,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 class ObjectDetector:
-    """YOLO-based object detector with clean ID management."""
     
     def __init__(self, model_path: str, conf_threshold: float = 0.5, 
                  iou_threshold: float = 0.45):
@@ -26,10 +22,6 @@ class ObjectDetector:
         self.iou_threshold = iou_threshold
     
     def detect(self, frame: np.ndarray, allowed_classes: Set[str]) -> List[Dict]:
-        """
-        Track objects in frame and return formatted detections using YOLO's tracker.
-        Persistent IDs are assigned automatically by the tracker.
-        """
         if frame is None or frame.size == 0:
             raise ValueError("Invalid or empty frame")
         
@@ -74,7 +66,6 @@ class ObjectDetector:
         return detections
     
     def get_model_info(self) -> Dict:
-        """Return model metadata."""
         return {
             "model_name": self.model.model_name,
             "task": self.model.task,
@@ -85,9 +76,7 @@ class ObjectDetector:
         }
 
 
-class VideoCapture:
-    """Video input handler for files and camera streams."""
-    
+class VideoCapture:    
     def __init__(self, source: str):
         self.source = source
         self.cap = None
@@ -97,7 +86,6 @@ class VideoCapture:
         self.total_frames = 0
     
     def open(self) -> bool:
-        """Open video source (file or camera)."""
         try:
             if self.source.isdigit():
                 self.cap = cv2.VideoCapture(int(self.source))
@@ -131,7 +119,6 @@ class VideoCapture:
             return False
     
     def read(self) -> Tuple[bool, Optional[np.ndarray]]:
-        """Read next frame."""
         if self.cap is None:
             return False, None
         
@@ -139,13 +126,11 @@ class VideoCapture:
         return ret, frame
     
     def release(self) -> None:
-        """Release video source."""
         if self.cap:
             self.cap.release()
             logger.info("Video source released")
     
     def is_valid(self, frame: Optional[np.ndarray]) -> bool:
-        """Validate frame."""
         return (
             frame is not None
             and isinstance(frame, np.ndarray)
@@ -155,9 +140,7 @@ class VideoCapture:
         )
 
 
-class VideoWriter:
-    """Video output writer with better codec support."""
-    
+class VideoWriter:    
     def __init__(self, output_path: str, frame_width: int, 
                  frame_height: int, fps: int):
         self.output_path = output_path
@@ -165,8 +148,6 @@ class VideoWriter:
         
         if output_path:
             Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-            
-            # Try different codecs in order of preference
             codecs = [
                 ('mp4v', '.mp4'),
                 ('H264', '.mp4'),
@@ -199,12 +180,10 @@ class VideoWriter:
                 )
     
     def write(self, frame: np.ndarray) -> None:
-        """Write frame to output."""
         if self.writer:
             self.writer.write(frame)
     
     def release(self) -> None:
-        """Release writer."""
         if self.writer:
             self.writer.release()
             logger.info("Video writer released")
