@@ -1,12 +1,10 @@
 import argparse
 import logging
-import cv2
 from pathlib import Path
 from ..core.object_detector import ObjectDetector, VideoCapture, VideoWriter
 from ..core.renderer import HUDRenderer, FPSMeter
 
 def main():
-    # --- CLI arguments ---
     parser = argparse.ArgumentParser(description="YOLO Object Detection - Save Marked Video")
     parser.add_argument(
         "--input", type=str, required=True,
@@ -34,11 +32,9 @@ def main():
     )
     args = parser.parse_args()
 
-    # --- Logging setup ---
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger("video_processor")
 
-    # --- Validate input file ---
     input_path = Path(args.input)
     if not input_path.exists():
         logger.error(f"Input file not found: {args.input}")
@@ -46,19 +42,15 @@ def main():
     
     logger.info(f"Processing video: {args.input}")
     
-    # --- Initialize components ---
     detector = ObjectDetector(args.model, args.conf, args.iou)
     video = VideoCapture(args.input)
 
     if not video.open():
         logger.error("Failed to open video source.")
         return
-
-    # --- Initialization ---
     renderer = HUDRenderer()
     fps_meter = FPSMeter()
     
-    # Create output directory if it doesn't exist
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     
@@ -75,19 +67,15 @@ def main():
         if not ret:
             logger.info("End of stream reached.")
             break
-
-        # 1. Get detections
+        
         detections = detector.detect(frame, set(args.classes))
         total_detections += len(detections)
 
-        # 2. Draw detection boxes and labels on the frame
         frame = renderer.draw_detections(frame, detections)
         
-        # 3. Update and draw FPS
         fps_meter.update()
         frame = renderer.draw_fps(frame, fps_meter.get_fps())
 
-        # 4. Write the marked frame to output video
         writer.write(frame)
         
         frame_count += 1
