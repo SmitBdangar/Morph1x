@@ -4,6 +4,7 @@ from pathlib import Path
 from ..core.object_detector import ObjectDetector, VideoCapture, VideoWriter
 from ..core.renderer import HUDRenderer, FPSMeter
 
+
 def main():
     parser = argparse.ArgumentParser(description="YOLO Object Detection - Save Marked Video")
     parser.add_argument(
